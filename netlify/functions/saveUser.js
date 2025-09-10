@@ -5,25 +5,29 @@ export async function handler(event) {
     return { statusCode: 405, body: "Method Not Allowed" };
   }
 
-  const { height, weight, money, code } = JSON.parse(event.body);
+  const { height, weight, money, code } = JSON.parse(event.body || "{}");
+
+  console.log("ENV NETLIFY_DATABASE_URL_UNPOOLED exists?", !!process.env.NETLIFY_DATABASE_URL_UNPOOLED);
 
   const client = new Client({
-    connectionString: process.env.NEON_DB_URL,
+    connectionString: process.env.NETLIFY_DATABASE_URL_UNPOOLED,
     ssl: { rejectUnauthorized: false }
   });
 
   try {
     await client.connect();
+    console.log("Connected to database ✅");
+
     await client.query(
       "INSERT INTO user_accounts (code, height, weight, money) VALUES ($1,$2,$3,$4)",
       [code, height, weight, money]
     );
-    await client.end();
 
+    await client.end();
     return { statusCode: 200, body: JSON.stringify({ message: "Saved", code }) };
+
   } catch (err) {
-    console.error(err);
+    console.error("Database error ❌", err);
     return { statusCode: 500, body: JSON.stringify({ error: err.message }) };
   }
 }
-

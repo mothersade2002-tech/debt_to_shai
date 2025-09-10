@@ -168,57 +168,55 @@
 </div>
 
 <div id="results"></div>
-<button id="downloadPdf" style="display:none;" onclick="downloadPDF()">Download Your Humiliating Debt Slip</button>
+<button id="downloadPdf" style="display:none;" onclick="downloadPDF()">
+  Download Your Humiliating Debt Slip
+</button>
+<div id="lookup" style="margin-top:40px; text-align:center;">
+  <input type="text" id="lookupCode" placeholder="Enter your code" />
+  <button onclick="lookupUser()">Retrieve Account</button>
+  <div id="lookupResult"></div>
+</div>
 
 <script>
-  const { jsPDF } = window.jspdf;
-  const STORAGE_KEY = 'debt_shai_entries';
-  let entries = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
-  let currentCode = null;
-
-  function nextQuestion(currentId, nextId, inputId) {
-    const input = document.getElementById(inputId);
-    if(!input.value || input.value.trim() === '') {
-      alert('You must fill out this field before continuing.');
-      return;
-    }
-    document.getElementById(currentId).classList.remove('active');
-    document.getElementById(nextId).classList.add('active');
-  }
-
-  function finishQuiz() {
+  async function finishQuiz() {
     const height = parseFloat(document.getElementById('height').value) || 0;
     const weight = parseFloat(document.getElementById('weight').value) || 0;
     const money = parseFloat(document.getElementById('money').value) || 0;
     const debt = height + weight + money;
 
-    currentCode = 'sub' + Date.now();
-    entries[currentCode] = { debt };
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(entries));
+    const code = "sub" + Date.now();
 
-    document.getElementById('questions').style.display = 'none';
-    document.getElementById('results').innerHTML = `<p>Your Total Debt: <span class="amount">$${debt.toFixed(2)}</span></p>`;
-    document.getElementById('downloadPdf').style.display = 'block';
+    // Save to Neon via Netlify
+    await fetch("/.netlify/functions/saveUser", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ height, weight, money, code })
+    });
+
+    document.getElementById("questions").style.display = "none";
+    document.getElementById("results").innerHTML =
+      `<p>Your Code: <b>${code}</b></p>
+       <p>Your Total Debt: <span class="amount">$${debt.toFixed(2)}</span></p>`;
+    document.getElementById("downloadPdf").style.display = "block";
   }
 
-  function downloadPDF(){
-    if(!currentCode || !entries[currentCode]) return;
-    const doc = new jsPDF({ unit:'pt', format:[400,400] });
-    doc.setFontSize(24);
-    doc.setTextColor(255,20,147);
-    doc.setFont('helvetica','bold');
-    doc.text('Debt Slip', 50, 80);
+  async function lookupUser() {
+    const code = document.getElementById("lookupCode").value.trim();
+    if (!code) return alert("Enter a code!");
 
-    doc.setFontSize(16);
-    doc.setTextColor(255,255,255);
-    doc.text(`Code: ${currentCode}`, 50, 140);
-    doc.text(`Total Debt: $${entries[currentCode].debt.toFixed(2)}`, 50, 180);
+    const res = await fetch(`/.netlify/functions/getUser?code=${code}`);
+    const data = await res.json();
 
-    doc.setFontSize(14);
-    doc.setTextColor(255,20,147);
-    doc.text(`You will never escape me, slave.`, 50, 220);
-
-    doc.save(`Debt_Slip_${currentCode}.pdf`);
+    if (res.ok) {
+      document.getElementById("lookupResult").innerHTML = `
+        <p>Found Account:</p>
+        <p>Height: ${data.height}</p>
+        <p>Weight: ${data.weight}</p>
+        <p>Money: $${data.money}</p>
+      `;
+    } else {
+      document.getElementById("lookupResult").innerHTML = `<p style="color:red;">Code not found!</p>`;
+    }
   }
 </script>
 

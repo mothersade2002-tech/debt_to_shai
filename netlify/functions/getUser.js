@@ -5,7 +5,7 @@ export async function handler(event) {
 
   const client = new Client({
     connectionString: process.env.NEON_DB_URL,
-    ssl: { rejectUnauthorized: false },
+    ssl: { rejectUnauthorized: false }
   });
 
   try {

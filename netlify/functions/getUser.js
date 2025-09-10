@@ -3,7 +3,7 @@ import { Client } from "pg";
 export async function handler(event) {
   const code = event.queryStringParameters.code;
 
-  console.log("ENV NETLIFY_DATABASE_URL_UNPOOLED exists?", !!process.env.NETLIFY_DATABASE_URL_UNPOOLED);
+  console.log("ENV NETLIFY_DATABASE_URL_UNPOOLED exists?", !!process.env.NEON_DB_URL);
 
   const client = new Client({
     connectionString: process.env.NETLIFY_DATABASE_URL_UNPOOLED,

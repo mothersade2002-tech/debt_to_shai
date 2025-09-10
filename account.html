@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Shai's Submissive Account</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<h1 class="spicy-text" id="accountTitle">Loading...</h1>
+<p id="debt" style="text-align:center;font-size:24px;margin-top:20px;"></p>
+<p id="created" style="text-align:center;"></p>
+ 
+ </div>
+
+  <script>
+    async function loadAccount() {
+      const params = new URLSearchParams(window.location.search);
+      const code = params.get("id");
+
+      if (!code) {
+        document.getElementById("accountTitle").innerText = "Invalid Account";
+        return;
+      }
+
+      try {
+        const res = await fetch(`/.netlify/functions/getUser?code=${code}`);
+        const data = await res.json();
+
+        if (res.ok) {
+          document.getElementById("accountTitle").innerText = `Shai's Submissive: ${code}`;
+          const debt = (data.height + data.weight + data.money).toFixed(2);
+          document.getElementById("debt").innerHTML = `Total Debt: <span class="amount">$${debt}</span>`;
+          document.getElementById("created").innerText = `Account Created: ${data.createdat ? new Date(data.createdat).toLocaleString() : 'Unknown'}`;
+        } else {
+          document.getElementById("accountTitle").innerText = "Code Not Found";
+        }
+      } catch (err) {
+        console.error(err);
+        document.getElementById("accountTitle").innerText = "Error loading account";
+      }
+    }
+
+    loadAccount();
+  </script>
+</body>
+</html>
+

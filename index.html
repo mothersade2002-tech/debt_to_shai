@@ -4,288 +4,35 @@
   <meta charset="UTF-8">
   <title>Debt Calculator Shai</title>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-  <style>
-    body {
-      margin: 0;
-      padding: 0;
-      font-family: 'Comic Sans MS', cursive, sans-serif;
-      overflow-x: hidden;
-      color: #fff;
-      background: radial-gradient(circle at center, #ff69b4, #ff1493);
-    }
-    .question {
-      display: none;
-      margin: 20px auto;
-      max-width: 600px;
-      text-align: center;
-      background: rgba(255, 192, 203, 0.8);
-      padding: 20px;
-      border: 2px solid #ff1493;
-      border-radius: 25px;
-      color: #fff;
-      box-shadow: 0 0 15px #ff1493;
-    }
-    .question.active {
-      display: block;
-    }
-    button {
-      background: #ff69b4;
-      color: white;
-      border: 2px solid #ff1493;
-      padding: 12px 24px;
-      border-radius: 25px;
-      cursor: pointer;
-      transition: all 0.3s ease;
-      font-weight: bold;
-      font-family: 'Comic Sans MS', cursive, sans-serif;
-      box-shadow: 0 0 10px #ff1493;
-      margin-top: 10px;
-    }
-    button:hover {
-      transform: scale(1.1) rotate(-2deg);
-      box-shadow: 0 0 20px #fff;
-    }
-    .spicy-text {
-      color: #fff;
-      text-align: center;
-      animation: floatRotate 3s ease-in-out infinite;
-      display: block;
-      transform-origin: center;
-      font-family: 'Comic Sans MS', cursive, sans-serif;
-      font-weight: bold;
-      font-size: 48px;
-      text-shadow: 3px 3px 5px #ff1493, 6px 6px 10px #ff69b4, 9px 9px 15px #fff;
-      transform: perspective(500px) rotateX(5deg) rotateY(5deg);
-    }
-    @keyframes floatRotate {
-      0% { transform: translateY(0) rotate(0deg); }
-      25% { transform: translateY(-10px) rotate(2deg); }
-      50% { transform: translateY(0) rotate(0deg); }
-      75% { transform: translateY(-10px) rotate(-2deg); }
-      100% { transform: translateY(0) rotate(0deg); }
-    }
-    input, textarea, select {
-      display: block;
-      margin: 10px auto;
-      padding: 10px;
-      font-size: 16px;
-      width: 80%;
-      max-width: 400px;
-      border-radius: 15px;
-      border: 2px solid #ff1493;
-      background: rgba(255,182,193,0.8);
-      color: #fff;
-      font-family: 'Comic Sans MS', cursive, sans-serif;
-      text-shadow: 1px 1px 2px #ff69b4;
-    }
-    #results {
-      text-align: center;
-      font-size: 24px;
-      font-weight: bold;
-      color: red;
-      text-shadow: 2px 2px 4px #fff;
-      margin-top: 20px;
-    }
-    #results span.amount {
-      color: red;
-    }
-    #downloadPdf {
-      display: none;
-      margin: 30px auto;
-      font-size: 20px;
-      padding: 16px 32px;
-    }
-    #lookup {
-      text-align: center;
-      margin-top: 40px;
-    }
-    #lookupResult {
-      margin-top: 20px;
-      font-size: 18px;
-      color: #fff;
-    }
-  </style>
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
 <h1 class="spicy-text">Debt Calculator Shai</h1>
 
-<div id="questions">
-    <div class="question active" id="q1">
-      <p class="spicy">Tell me your height, worthless sub (inches):</p>
-      <input id="height" type="number">
-      <button onclick="nextQuestion('q1','q2','height')">Next</button>
-    </div>
-
-    <div class="question" id="q2">
-      <p class="spicy">Your pathetic weight (lbs):</p>
-      <input id="weight" type="number">
-      <button onclick="nextQuestion('q2','q3','weight')">Next</button>
-    </div>
-
-    <div class="question" id="q3">
-      <p class="spicy">Rate your face, I dare you (1-10):</p>
-      <input id="attractiveness" type="number" min="1" max="10">
-      <button onclick="nextQuestion('q3','q4','attractiveness')">Next</button>
-    </div>
-
-    <div class="question" id="q4">
-      <p class="spicy">Your pathetic age, slave:</p>
-      <input id="age" type="number">
-      <button onclick="nextQuestion('q4','q5','age')">Next</button>
-    </div>
-
-    <div class="question" id="q5">
-      <p class="spicy">Describe your deepest femdom fantasy:</p>
-      <textarea id="fantasy"></textarea>
-      <button onclick="nextQuestion('q5','q6','fantasy')">Next</button>
-    </div>
-
-    <div class="question" id="q6">
-      <p class="spicy">Would you rather spend a day working in a sewer and giving me your wage, or lick the bottoms of my shoes clean in a pink skirt?</p>
-      <select id="devotion">
-        <option value="">Select...</option>
-        <option value="sewer">Sewer</option>
-        <option value="shoes">Shoes</option>
-      </select>
-      <button onclick="nextQuestion('q6','q7','devotion')">Next</button>
-    </div>
-
-    <div class="question" id="q7">
-      <p class="spicy">Which outfit would you wear to serve me best: leather, latex, or pink lace?</p>
-      <select id="outfit">
-        <option value="">Select...</option>
-        <option value="leather">Leather</option>
-        <option value="latex">Latex</option>
-        <option value="pink_lace">Pink Lace</option>
-      </select>
-      <button onclick="nextQuestion('q7','q8','outfit')">Next</button>
-    </div>
-
-    <div class="question" id="q8">
-      <p class="spicy">On a scale of 1-10, how much do you crave humiliation?</p>
-      <input id="humiliation" type="number" min="1" max="10">
-      <button onclick="nextQuestion('q8','q9','humiliation')">Next</button>
-    </div>
-
-    <div class="question" id="q9">
-      <p class="spicy">Do you enjoy chastity play? (Yes/No)</p>
-      <input id="chastity" type="text">
-      <button onclick="nextQuestion('q9','q10','chastity')">Next</button>
-    </div>
-
-    <div class="question" id="q10">
-      <p class="spicy">Do you fantasize about feminization? (Yes/No)</p>
-      <input id="feminization" type="text">
-      <button onclick="nextQuestion('q10','q11','feminization')">Next</button>
-    </div>
-
-    <div class="question" id="q11">
-      <p class="spicy">Would you serve as a human pet for a day? (Yes/No)</p>
-      <input id="petplay" type="text">
-      <button onclick="nextQuestion('q11','q12','petplay')">Next</button>
-    </div>
-
-    <div class="question" id="q12">
-      <p class="spicy">How much money would you be willing to send me right now ($)?</p>
-      <input id="money" type="number">
-      <button onclick="finishQuiz()">Finish</button>
-    </div>
-  </div>
-</div>
+<!-- Questions will be loaded dynamically -->
+<div id="questions"></div>
 
 <div id="results"></div>
 <button id="downloadPdf" style="display:none;" onclick="downloadPDF()">Download Your Humiliating Debt Slip</button>
 
+<!-- Lookup Section -->
 <div id="lookup">
-  <input type="text" id="lookupCode" placeholder="Enter your code">
-  <button onclick="lookupUser()">Retrieve Account</button>
-  <div id="lookupResult"></div>
+  <input type="text" id="lookupCode" placeholder="Enter your 6-digit code">
+  <button onclick="goToAccount()">Retrieve Account</button>
 </div>
 
+<script src="script.js"></script>
 <script>
-  const { jsPDF } = window.jspdf;
-  let currentCode = null;
-
-  function nextQuestion(currentId, nextId, inputId) {
-    const input = document.getElementById(inputId);
-    if (!input.value || input.value.trim() === '') {
-      alert('You must fill out this field before continuing.');
-      return;
-    }
-    document.getElementById(currentId).classList.remove('active');
-    document.getElementById(nextId).classList.add('active');
+  // Load external questions.html into #questions
+  async function loadQuestions() {
+    const response = await fetch("questions.html");
+    const html = await response.text();
+    document.getElementById("questions").innerHTML = html;
   }
-
-  async function finishQuiz() {
-    const height = parseFloat(document.getElementById('height').value) || 0;
-    const weight = parseFloat(document.getElementById('weight').value) || 0;
-    const money = parseFloat(document.getElementById('money').value) || 0;
-    const debt = height + weight + money;
-
-    currentCode = 'sub' + Date.now();
-
-    try {
-      const res = await fetch('/.netlify/functions/saveUser', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ height, weight, money, code: currentCode })
-      });
-      if (!res.ok) throw new Error('Failed to save');
-    } catch (err) {
-      console.error(err);
-      alert('There was an error saving your data.');
-    }
-
-    document.getElementById('questions').style.display = 'none';
-    document.getElementById('results').innerHTML = `<p>Your Code: <b>${currentCode}</b></p>
-      <p>Your Total Debt: <span class="amount">$${debt.toFixed(2)}</span></p>`;
-    document.getElementById('downloadPdf').style.display = 'block';
-  }
-
-  function downloadPDF() {
-    if (!currentCode) return;
-    const doc = new jsPDF({ unit: 'pt', format: [400, 400] });
-    doc.setFontSize(24);
-    doc.setTextColor(255, 20, 147);
-    doc.setFont('helvetica', 'bold');
-    doc.text('Debt Slip', 50, 80);
-
-    doc.setFontSize(16);
-    doc.setTextColor(255, 255, 255);
-    doc.text(`Code: ${currentCode}`, 50, 140);
-
-    doc.setFontSize(14);
-    doc.setTextColor(255, 20, 147);
-    doc.text(`You will never escape me, slave.`, 50, 220);
-
-    doc.save(`Debt_Slip_${currentCode}.pdf`);
-  }
-
-  async function lookupUser() {
-    const code = document.getElementById('lookupCode').value.trim();
-    if (!code) return alert("Enter a code!");
-
-    try {
-      const res = await fetch(`/.netlify/functions/getUser?code=${code}`);
-      const data = await res.json();
-
-      if (res.ok) {
-        document.getElementById('lookupResult').innerHTML = `
-          <p>Found Account:</p>
-          <p>Height: ${data.height}</p>
-          <p>Weight: ${data.weight}</p>
-          <p>Money: $${data.money}</p>
-        `;
-      } else {
-        document.getElementById('lookupResult').innerHTML = `<p style="color:red;">Code not found!</p>`;
-      }
-    } catch (err) {
-      console.error(err);
-      document.getElementById('lookupResult').innerHTML = `<p style="color:red;">Error retrieving data.</p>`;
-    }
-  }
+  loadQuestions();
 </script>
 
 </body>
 </html>
+

@@ -18,10 +18,10 @@ export async function handler(event) {
     await client.connect();
     console.log("Connected to database ✅");
 
-    await client.query(
-      "INSERT INTO user_accounts (code, height, weight, money) VALUES ($1,$2,$3,$4)",
-      [code, height, weight, money]
-    );
+await client.query(
+  "INSERT INTO user_accounts (code, height, weight, money, email, createdAt, debt, hasTask) VALUES ($1,$2,$3,$4,$5,$6,$7,$8)",
+  [code, height, weight, money, email, createdAt, debt, false]
+);
 
     await client.end();
     return { statusCode: 200, body: JSON.stringify({ message: "Saved", code }) };

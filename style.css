@@ -1,0 +1,112 @@
+body {
+  margin: 0;
+  padding: 0;
+  font-family: 'Comic Sans MS', cursive, sans-serif;
+  overflow-x: hidden;
+  color: #fff;
+  background: radial-gradient(circle at center, #ff69b4, #ff1493);
+}
+
+.question {
+  display: none;
+  margin: 20px auto;
+  max-width: 600px;
+  text-align: center;
+  background: rgba(255, 192, 203, 0.8);
+  padding: 20px;
+  border: 2px solid #ff1493;
+  border-radius: 25px;
+  color: #fff;
+  box-shadow: 0 0 15px #ff1493;
+}
+
+.question.active {
+  display: block;
+}
+
+button {
+  background: #ff69b4;
+  color: white;
+  border: 2px solid #ff1493;
+  padding: 12px 24px;
+  border-radius: 25px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-weight: bold;
+  font-family: 'Comic Sans MS', cursive, sans-serif;
+  box-shadow: 0 0 10px #ff1493;
+  margin-top: 10px;
+}
+
+button:hover {
+  transform: scale(1.1) rotate(-2deg);
+  box-shadow: 0 0 20px #fff;
+}
+
+.spicy-text {
+  color: #fff;
+  text-align: center;
+  animation: floatRotate 3s ease-in-out infinite;
+  display: block;
+  transform-origin: center;
+  font-family: 'Comic Sans MS', cursive, sans-serif;
+  font-weight: bold;
+  font-size: 48px;
+  text-shadow: 3px 3px 5px #ff1493, 6px 6px 10px #ff69b4, 9px 9px 15px #fff;
+  transform: perspective(500px) rotateX(5deg) rotateY(5deg);
+}
+
+@keyframes floatRotate {
+  0% { transform: translateY(0) rotate(0deg); }
+  25% { transform: translateY(-10px) rotate(2deg); }
+  50% { transform: translateY(0) rotate(0deg); }
+  75% { transform: translateY(-10px) rotate(-2deg); }
+  100% { transform: translateY(0) rotate(0deg); }
+}
+
+input, textarea, select {
+  display: block;
+  margin: 10px auto;
+  padding: 10px;
+  font-size: 16px;
+  width: 80%;
+  max-width: 400px;
+  border-radius: 15px;
+  border: 2px solid #ff1493;
+  background: rgba(255,182,193,0.8);
+  color: #fff;
+  font-family: 'Comic Sans MS', cursive, sans-serif;
+  text-shadow: 1px 1px 2px #ff69b4;
+}
+
+#results {
+  text-align: center;
+  font-size: 24px;
+  font-weight: bold;
+  color: red;
+  text-shadow: 2px 2px 4px #fff;
+  margin-top: 20px;
+}
+
+#results span.amount {
+  color: red;
+}
+
+#downloadPdf {
+  display: none;
+  margin: 30px auto;
+  font-size: 20px;
+  padding: 16px 32px;
+}
+
+#lookup {
+  text-align: center;
+  margin-top: 40px;
+}
+
+#lookupResult {
+  margin-top: 20px;
+  font-size: 18px;
+  color: #fff;
+}
+

@@ -3,7 +3,28 @@
 <head>
   <meta charset="UTF-8">
   <title>Debt Calculator Shai</title>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js">
+function nextQuestion(currentId, nextId, inputId) {
+  const input = document.getElementById(inputId);
+  if (!input.value || input.value.trim() === '') {
+    alert("You must fill out this field before continuing.");
+    return;
+  }
+  document.getElementById(currentId).classList.remove("active");
+  document.getElementById(nextId).classList.add("active");
+}
+
+function downloadPDF() {
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ unit: "pt", format: [400, 400] });
+  doc.setFontSize(24);
+  doc.setTextColor(255, 20, 147);
+  doc.setFont("helvetica", "bold");
+  doc.text("Debt Slip", 50, 80);
+  doc.save("Debt_Slip.pdf");
+}
+
+</script>
   <style>
     body {
       margin: 0;

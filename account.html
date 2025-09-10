@@ -6,42 +6,85 @@
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-<h1 class="spicy-text" id="accountTitle">Loading...</h1>
-<p id="debt" style="text-align:center;font-size:24px;margin-top:20px;"></p>
-<p id="created" style="text-align:center;"></p>
- 
- </div>
+  <h1 class="spicy-text" id="accountTitle">Loading...</h1>
+  <p id="debt" style="text-align:center;font-size:24px;margin-top:20px;"></p>
+  <p id="created" style="text-align:center;"></p>
+
+  <div id="taskSection" style="margin:30px auto;max-width:600px;padding:20px;border:2px solid #ff1493;border-radius:15px;background:rgba(255,192,203,0.8);">
+    <h2>Your Current Assignment</h2>
+    <div id="taskBox"></div>
+  </div>
 
   <script>
+    const humiliatingTasks = [
+      "Write 'I AM SHAI'S TOY' 100 times on paper and upload proof.",
+      "Go outside wearing something pink, take a selfie, upload it.",
+      "Record yourself begging for mercy while holding a sign with your debt.",
+      "Draw Shai’s name on your body in lipstick, take a picture, upload it."
+    ];
+
+    function assignTask(account) {
+      if (!account.hastask) {
+        const task = humiliatingTasks[Math.floor(Math.random() * humiliatingTasks.length)];
+        return { task, hasTask: true };
+      }
+      return { task: account.currenttask, hasTask: true };
+    }
+
     async function loadAccount() {
       const params = new URLSearchParams(window.location.search);
       const code = params.get("id");
+      if (!code) return;
 
-      if (!code) {
-        document.getElementById("accountTitle").innerText = "Invalid Account";
+      const res = await fetch(`/.netlify/functions/getUser?code=${code}`);
+      const data = await res.json();
+
+      if (res.ok) {
+        document.getElementById("accountTitle").innerText = `Shai's Submissive: ${code}`;
+        document.getElementById("debt").innerHTML = `In Debt to Shai: <span class="amount">$${data.debt.toFixed(2)}</span>`;
+        document.getElementById("created").innerText = `Account Created: ${new Date(data.createdat).toLocaleString()}`;
+
+        let taskInfo = assignTask(data);
+        document.getElementById("taskBox").innerHTML = `
+          <p>${taskInfo.task || "Check back for new assignment later, beta."}</p>
+          ${taskInfo.hasTask ? `
+            <input type="file" id="taskFile" accept="image/*,video/*" style="margin-top:10px;">
+            <button onclick="submitTask()">Submit Task</button>
+          ` : ""}
+          <h3>Relapse Diary</h3>
+          <textarea id="relapseNote" placeholder="Confess what you spent..."></textarea>
+          <input id="relapseAmount" type="number" placeholder="$ amount sent">
+          <button onclick="submitRelapse(${data.debt}, '${code}')">Submit Relapse</button>
+        `;
+      }
+    }
+
+    function submitTask() {
+      const file = document.getElementById("taskFile").files[0];
+      if (!file) {
+        alert("You must upload proof to complete this task!");
         return;
       }
+      alert("Task submitted for review (not actually uploaded).");
+    }
 
-      try {
-        const res = await fetch(`/.netlify/functions/getUser?code=${code}`);
-        const data = await res.json();
+    async function submitRelapse(currentDebt, code) {
+      const note = document.getElementById("relapseNote").value.trim();
+      const amount = parseFloat(document.getElementById("relapseAmount").value) || 0;
+      if (!amount) return alert("Enter an amount.");
+      const newDebt = currentDebt - amount;
 
-        if (res.ok) {
-          document.getElementById("accountTitle").innerText = `Shai's Submissive: ${code}`;
-          const debt = (data.height + data.weight + data.money).toFixed(2);
-          document.getElementById("debt").innerHTML = `Total Debt: <span class="amount">$${debt}</span>`;
-          document.getElementById("created").innerText = `Account Created: ${data.createdat ? new Date(data.createdat).toLocaleString() : 'Unknown'}`;
-        } else {
-          document.getElementById("accountTitle").innerText = "Code Not Found";
-        }
-      } catch (err) {
-        console.error(err);
-        document.getElementById("accountTitle").innerText = "Error loading account";
-      }
+      await fetch('/.netlify/functions/updateDebt', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ code, newDebt })
+      });
+
+      alert("Relapse noted. Your debt has been updated.");
+      location.reload();
     }
 
     loadAccount();
   </script>
 </body>
 </html>
-

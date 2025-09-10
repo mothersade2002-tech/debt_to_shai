@@ -4,15 +4,65 @@
   <meta charset="UTF-8">
   <title>Shai's Submissive Account</title>
   <link rel="stylesheet" href="style.css">
+  <style>
+    .account-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin: 20px auto;
+      max-width: 800px;
+    }
+    .account-header h1 {
+      font-size: 36px;
+      color: red;
+    }
+    .account-header h2 {
+      font-size: 20px;
+      color: white;
+    }
+    .task-box, .relapse-box {
+      margin: 20px auto;
+      max-width: 800px;
+      padding: 20px;
+      border: 2px solid #ff1493;
+      border-radius: 15px;
+      background: rgba(255,192,203,0.8);
+    }
+    .relapse-entry {
+      border-bottom: 1px dashed #ff1493;
+      padding: 10px 0;
+    }
+    .relapse-row {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+    .relapse-row textarea {
+      flex: 2;
+      height: 60px;
+    }
+    .relapse-row input, .relapse-row select {
+      flex: 1;
+    }
+  </style>
 </head>
 <body>
-  <h1 class="spicy-text" id="accountTitle">Loading...</h1>
-  <p id="debt" style="text-align:center;font-size:24px;margin-top:20px;"></p>
-  <p id="created" style="text-align:center;"></p>
+  <div class="account-header">
+    <h1 id="debt">Debt to Shai: $0.00</h1>
+    <h2 id="accountTitle">Shai's Submissive: --</h2>
+  </div>
 
-  <div id="taskSection" style="margin:30px auto;max-width:600px;padding:20px;border:2px solid #ff1493;border-radius:15px;background:rgba(255,192,203,0.8);">
-    <h2>Your Current Assignment</h2>
+  <h2 style="text-align:center;">Tasks</h2>
+  <div id="taskSection" class="task-box">
     <div id="taskBox"></div>
+  </div>
+
+  <h2 style="text-align:center;">Relapse Diary</h2>
+  <div id="relapseSection" class="relapse-box">
+    <div id="relapseHistory"></div>
+    <div id="relapseForm"></div>
+    <button onclick="addRelapseRow()">➕ Add Entry</button>
+    <button onclick="submitRelapse()">Submit Relapse</button>
   </div>
 
   <script>
@@ -41,9 +91,9 @@
 
       if (res.ok) {
         document.getElementById("accountTitle").innerText = `Shai's Submissive: ${code}`;
-        document.getElementById("debt").innerHTML = `In Debt to Shai: <span class="amount">$${data.debt.toFixed(2)}</span>`;
-        document.getElementById("created").innerText = `Account Created: ${new Date(data.createdat).toLocaleString()}`;
+        document.getElementById("debt").innerText = `Debt to Shai: $${data.debt.toFixed(2)}`;
 
+        // Assign or show task
         let taskInfo = assignTask(data);
         document.getElementById("taskBox").innerHTML = `
           <p>${taskInfo.task || "Check back for new assignment later, beta."}</p>
@@ -51,11 +101,13 @@
             <input type="file" id="taskFile" accept="image/*,video/*" style="margin-top:10px;">
             <button onclick="submitTask()">Submit Task</button>
           ` : ""}
-          <h3>Relapse Diary</h3>
-          <textarea id="relapseNote" placeholder="Confess what you spent..."></textarea>
-          <input id="relapseAmount" type="number" placeholder="$ amount sent">
-          <button onclick="submitRelapse(${data.debt}, '${code}')">Submit Relapse</button>
         `;
+
+        // Load relapse history
+        loadRelapseHistory(code);
+
+        // Init relapse form
+        addRelapseRow();
       }
     }
 
@@ -68,20 +120,72 @@
       alert("Task submitted for review (not actually uploaded).");
     }
 
-    async function submitRelapse(currentDebt, code) {
-      const note = document.getElementById("relapseNote").value.trim();
-      const amount = parseFloat(document.getElementById("relapseAmount").value) || 0;
-      if (!amount) return alert("Enter an amount.");
-      const newDebt = currentDebt - amount;
+    function addRelapseRow() {
+      const form = document.getElementById("relapseForm");
+      const row = document.createElement("div");
+      row.classList.add("relapse-row");
+      row.innerHTML = `
+        <textarea placeholder="Confess your relapse..."></textarea>
+        <input type="number" placeholder="$ amount sent">
+        <select>
+          <option value="">Platform...</option>
+          <option value="CashApp">CashApp</option>
+          <option value="Throne">Throne</option>
+        </select>
+      `;
+      form.appendChild(row);
+    }
 
-      await fetch('/.netlify/functions/updateDebt', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ code, newDebt })
+    async function submitRelapse() {
+      const params = new URLSearchParams(window.location.search);
+      const code = params.get("id");
+
+      const rows = document.querySelectorAll("#relapseForm .relapse-row");
+      let entries = [];
+
+      rows.forEach(r => {
+        const note = r.querySelector("textarea").value.trim();
+        const amount = parseFloat(r.querySelector("input").value) || 0;
+        const platform = r.querySelector("select").value;
+        if (note && amount > 0 && platform) {
+          entries.push({ note, amount, platform });
+        }
       });
 
-      alert("Relapse noted. Your debt has been updated.");
-      location.reload();
+      if (entries.length === 0) {
+        alert("Fill out at least one relapse entry.");
+        return;
+      }
+
+      const res = await fetch('/.netlify/functions/addRelapse', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ code, entries })
+      });
+
+      if (res.ok) {
+        alert("Relapse submitted. Debt updated.");
+        location.reload();
+      } else {
+        alert("Error saving relapse.");
+      }
+    }
+
+    async function loadRelapseHistory(code) {
+      const res = await fetch(`/.netlify/functions/getRelapse?code=${code}`);
+      const data = await res.json();
+      const container = document.getElementById("relapseHistory");
+      if (res.ok && data.length > 0) {
+        container.innerHTML = data.map(e => `
+          <div class="relapse-entry">
+            <p><b>${new Date(e.createdat).toLocaleString()}</b> — ${e.platform}</p>
+            <p>${e.note}</p>
+            <p style="color:red;">-$${e.amount.toFixed(2)}</p>
+          </div>
+        `).join("");
+      } else {
+        container.innerHTML = "<p>No relapse history yet, beta.</p>";
+      }
     }
 
     loadAccount();

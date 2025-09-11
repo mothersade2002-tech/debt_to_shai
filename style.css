@@ -1,3 +1,63 @@
+/* Simplified and updated style with requested visuals */
+:root{
+  --bg1:#ff69b4; --bg2:#ff1493; --white:#fff; --red:#ff1744;
+}
+
+*{box-sizing:border-box}
+body{
+  margin:0; font-family:'Comic Sans MS',cursive, sans-serif;
+  background: radial-gradient(circle at center, var(--bg1), var(--bg2)); color:var(--white);
+  position:relative; overflow-x:hidden;
+}
+.watermark{position:fixed; left:50%; top:45%; transform:translate(-50%,-50%) rotate(-30deg); font-size:6rem; color:rgba(255,0,102,0.06); pointer-events:none; z-index:0;}
+
+/* header */
+header{text-align:center;padding:24px 10px; z-index:2}
+.spicy-text{ font-size:44px; text-shadow:3px 3px 8px #ff1493; transform: perspective(400px) rotateX(4deg); animation:float 3s ease-in-out infinite;}
+
+/* questions */
+.question{display:none;margin:18px auto;max-width:640px;text-align:center;background:rgba(255,192,203,0.9);padding:18px;border-radius:18px;border:3px solid rgba(255,20,147,0.2);box-shadow:0 8px 20px rgba(0,0,0,0.25);}
+.question.active{display:block;animation:slideIn .4s ease;}
+
+/* buttons and tooltip */
+button{background:var(--bg1);color:var(--white);border:2px solid var(--bg2);padding:10px 18px;border-radius:18px;cursor:pointer;position:relative}
+button[data-tip]{position:relative}
+button[data-tip]:hover::after{content:attr(data-tip);position:absolute;bottom:120%;left:50%;transform:translateX(-50%);background:#000;color:var(--bg1);padding:6px 8px;border-radius:6px;font-size:12px;white-space:nowrap}
+
+/* cursor: collar leash svg */
+body, button { cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32"><text y="24" font-size="20">🐶</text></svg>') 16 0, auto; }
+
+input, textarea, select{display:block;margin:10px auto;padding:10px;font-size:16px;width:80%;max-width:460px;border-radius:12px;border:2px solid rgba(255,20,147,0.2);background:rgba(255,182,193,0.95);color:var(--white)}
+
+/* account header */
+.account-header{display:flex;justify-content:space-between;align-items:center;margin:20px auto;max-width:900px;padding:0 20px;z-index:2}
+.account-header h1{font-size:40px;color:var(--white);margin:0}
+.account-header .amount-box{display:inline-block;background:rgba(255,20,147,0.12);padding:6px 14px;border-radius:8px;color:var(--red);font-weight:900;margin-left:12px}
+
+/* debt bar */
+.debt-bar{height:28px;max-width:900px;margin:12px auto;border-radius:12px;overflow:hidden;border:2px solid rgba(255,20,147,0.1);background:rgba(255,182,193,0.2);position:relative}
+.debt-fill{height:100%;width:0%;background:linear-gradient(90deg,#ff2a80,#ff8ab8);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;letter-spacing:2px;transition:width .8s}
+
+/* task & relapse layout: grid */
+.controls-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px;max-width:1100px;margin:18px auto;padding:0 12px}
+.task-box, .relapse-box{padding:18px;border-radius:14px;background:rgba(255,192,203,0.95);border:6px double rgba(255,20,147,0.12);box-shadow:0 12px 30px rgba(0,0,0,0.25)}
+
+/* wheel */
+#wheel{width:260px;height:260px;border-radius:50%;margin:8px auto;position:relative;border:8px solid rgba(255,20,147,0.16);background:conic-gradient(#ff7aa9 0 60deg,#ff2a80 60deg 120deg,#ffc0dd 120deg 180deg,#ff3666 180deg 240deg,#ffd4eb 240deg 300deg,#ff8ab8 300deg 360deg);}
+#wheel .pointer{position:absolute;top:-18px;left:50%;transform:translateX(-50%);width:0;height:0;border-left:12px solid transparent;border-right:12px solid transparent;border-bottom:18px solid #fff}
+
+/* leaderboard */
+.leaderboard{max-width:900px;margin:20px auto;padding:12px;text-align:center}
+
+/* small helpers */
+.shake-text{animation:shake .6s linear infinite}
+@keyframes shake{0%{transform:translateX(0)}25%{transform:translateX(-5px)}50%{transform:translateX(5px)}75%{transform:translateX(-3px)}100%{transform:translateX(0)}}
+@keyframes float{0%{transform:translateY(0)}50%{transform:translateY(-8px)}100%{transform:translateY(0)}}
+@keyframes slideIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+
+/* responsive */
+@media(max-width:900px){ .controls-grid{grid-template-columns:1fr} .account-header{flex-direction:column;gap:8px} }
+
 
 :root{
   --bg1:#ff69b4; --bg2:#ff1493; --white:#fff; --red:#ff1744;

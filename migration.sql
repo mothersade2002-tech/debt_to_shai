@@ -1,4 +1,4 @@
--- Migration to ensure schema matches app requirements
+-- Migration SQL (ensure tables/columns)
 ALTER TABLE user_accounts
   ADD COLUMN IF NOT EXISTS email TEXT,
   ADD COLUMN IF NOT EXISTS code TEXT,

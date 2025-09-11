@@ -1,57 +1,71 @@
-<!doctype html>
-<html>
-<head><meta charset="utf-8"><title>Create Account</title><link rel="stylesheet" href="style.css"></head>
-<body>
-  <main class="container">
-    <h2>create account</h2>
-    <form id="createForm">
-      <label>email<input type="email" id="email" required></label>
-      <label>height (inches)<input type="number" id="height" required></label>
-      <label>weight (lbs)<input type="number" id="weight" required></label>
-      <label>age<input type="number" id="age" required></label>
-      <label>face rating (1-10)<input type="number" id="attractiveness" min="1" max="10" required></label>
-      <label>femdom fantasy<textarea id="fantasy"></textarea></label>
-      <label>devotion<select id="devotion"><option value="">select</option><option value="sewer">sewer</option><option value="shoes">shoes</option></select></label>
-      <label>chastity<input id="chastity"></label>
-      <label>feminization<input id="feminization"></label>
-      <label>petplay<input id="petplay"></label>
-      <label>initial tribute ($)<input type="number" id="money" value="0"></label>
-      <div class="actions">
-        <button type="button" onclick="createAccount()">create</button>
-        <a href="index.html" class="link">cancel</a>
-      </div>
-    </form>
-    <div id="msg" class="msg"></div>
-  <script>
-  function randomCode(){return Math.floor(100000+Math.random()*900000).toString();}
-  async function createAccount(){
-    const email=document.getElementById('email').value.trim();
-    const code=randomCode();
-    if(!email){alert('email required');return;}
-    const payload={
-      email, code,
-      height:parseFloat(document.getElementById('height').value)||0,
-      weight:parseFloat(document.getElementById('weight').value)||0,
-      age:parseInt(document.getElementById('age').value)||0,
-      attractiveness:document.getElementById('attractiveness').value,
-      fantasy:document.getElementById('fantasy').value,
-      devotion:document.getElementById('devotion').value,
-      chastity:document.getElementById('chastity').value,
-      feminization:document.getElementById('feminization').value,
-      petplay:document.getElementById('petplay').value,
-      money:parseFloat(document.getElementById('money').value)||0,
-      createdAt:new Date().toISOString(),
-      debt: Math.max(50, (parseFloat(document.getElementById('money').value)||0) + 100)
-    };
-    try{
-      const res=await fetch('/.netlify/functions/saveUser',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
-      if(!res.ok){ const t=await res.text(); throw new Error(t); }
-      const j=await res.json();
-      document.getElementById('msg').innerText='created. your code: '+code;
-      setTimeout(()=>{ window.location.href='signin.html'; },1200);
-    }catch(e){ alert('error: '+e.message); }
-  }
-  </script>
-  </main>
-</body>
-</html>
+<!doctype html><html><head><meta charset="utf-8"><title>Create Account</title><link rel="stylesheet" href="style.css"></head><body>
+<main class="centered">
+  <div class="big-text" id="qTitle">create account</div>
+  <div id="questionBox" style="width:90%;max-width:800px;margin-top:24px;" class="task-box"></div>
+  <div style="margin-top:16px;"><button id="prevBtn" onclick="prevQ()" disabled>prev</button> <button id="nextBtn" onclick="nextQ()">next</button></div>
+</main>
+<script>
+const questions = [
+  {id:'email', label:'enter your email', type:'email'},
+  {id:'height', label:'tell me your height (inches)', type:'number'},
+  {id:'weight', label:'your weight (lbs)', type:'number'},
+  {id:'age', label:'your age', type:'number'},
+  {id:'attractiveness', label:'face rating (1-10)', type:'number'},
+  {id:'fantasy', label:'your femdom fantasy', type:'textarea'},
+  {id:'devotion', label:'would you rather sewer or shoes', type:'select', options:['','sewer','shoes']},
+  {id:'chastity', label:'do you enjoy chastity? (yes/no)', type:'text'},
+  {id:'feminization', label:'do you fantasize about feminization?', type:'text'},
+  {id:'petplay', label:'would you be a human pet for a day?', type:'text'},
+  {id:'money', label:'how much would you send right now ($)', type:'number'}
+];
+let state = {}, idx=0;
+function render(){
+  const q = questions[idx];
+  document.getElementById('qTitle').innerText = q.label;
+  const box = document.getElementById('questionBox');
+  let html='';
+  if(q.type==='textarea') html=`<textarea id="${q.id}" style="height:140px;width:100%"></textarea>`;
+  else if(q.type==='select'){ html = '<select id="'+q.id+'">'+ q.options.map(o=>`<option value="${o}">${o}</option>`).join('') +'</select>'; }
+  else html = `<input id="${q.id}" type="${q.type}" />`;
+  box.innerHTML = html;
+  document.getElementById('prevBtn').disabled = idx===0;
+  document.getElementById('nextBtn').innerText = (idx===questions.length-1)?'finish':'next';
+  const el = document.getElementById(q.id);
+  if(el && state[q.id]!==undefined) el.value = state[q.id];
+}
+function nextQ(){
+  const q = questions[idx]; const el = document.getElementById(q.id);
+  if(!el || el.value===undefined || (typeof el.value === 'string' && el.value.trim()==='')){ alert('please answer'); return; }
+  state[q.id] = el.value;
+  if(idx < questions.length-1){ idx++; render(); } else { finish(); }
+}
+function prevQ(){ if(idx>0){ idx--; render(); } }
+async function finish(){
+  const payload = {
+    email: state.email,
+    height: parseFloat(state.height)||0,
+    weight: parseFloat(state.weight)||0,
+    age: parseInt(state.age)||0,
+    attractiveness: state.attractiveness,
+    fantasy: state.fantasy,
+    devotion: state.devotion,
+    chastity: state.chastity,
+    feminization: state.feminization,
+    petplay: state.petplay,
+    money: parseFloat(state.money)||0,
+    createdAt: new Date().toISOString(),
+    code: Math.floor(100000+Math.random()*900000).toString(),
+    debt: Math.max(50, (parseFloat(state.money)||0) + 100)
+  };
+  try{
+    const res = await fetch('/.netlify/functions/saveUser',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
+    if(!res.ok){ const t = await res.text(); throw new Error(t); }
+    const j = await res.json();
+    sessionStorage.setItem('new_code', j.code || payload.code);
+    sessionStorage.setItem('new_debt', payload.debt);
+    window.location.href = 'created.html';
+  }catch(e){ alert('error creating: '+e.message); }
+}
+render();
+</script>
+</body></html>

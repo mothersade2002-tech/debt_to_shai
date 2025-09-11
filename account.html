@@ -1,194 +1,56 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="utf-8" />
   <title>Shai's Submissive Account</title>
-  <link rel="stylesheet" href="style.css">
-  <style>
-    .account-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin: 20px auto;
-      max-width: 800px;
-    }
-    .account-header h1 {
-      font-size: 36px;
-      color: red;
-    }
-    .account-header h2 {
-      font-size: 20px;
-      color: white;
-    }
-    .task-box, .relapse-box {
-      margin: 20px auto;
-      max-width: 800px;
-      padding: 20px;
-      border: 2px solid #ff1493;
-      border-radius: 15px;
-      background: rgba(255,192,203,0.8);
-    }
-    .relapse-entry {
-      border-bottom: 1px dashed #ff1493;
-      padding: 10px 0;
-    }
-    .relapse-row {
-      display: flex;
-      gap: 10px;
-      margin-bottom: 10px;
-    }
-    .relapse-row textarea {
-      flex: 2;
-      height: 60px;
-    }
-    .relapse-row input, .relapse-row select {
-      flex: 1;
-    }
-  </style>
+  <link rel="stylesheet" href="style.css" />
 </head>
 <body>
+  <div class="watermark">PROPERTY OF SHAI</div>
+
   <div class="account-header">
-    <h1 id="debt">Debt to Shai: $0.00</h1>
+    <h1 id="debt" class="shake-text">Debt to Shai: $0.00</h1>
     <h2 id="accountTitle">Shai's Submissive: --</h2>
   </div>
 
+  <div class="debt-bar"><div id="debtFill" class="debt-fill"></div></div>
+
   <h2 style="text-align:center;">Tasks</h2>
-  <div id="taskSection" class="task-box">
-    <div id="taskBox"></div>
+  <div id="taskSection" class="task-box"><div id="taskBox">Loading tasks...</div></div>
+
+  <h2 style="text-align:center;">Wheel of Debt 🎡</h2>
+  <div class="task-box" style="text-align:center;">
+    <div id="wheel" aria-hidden="true"><div class="pointer"></div></div>
+    <button onclick="spinWheel()">Spin</button>
+    <p id="wheelResult"></p>
+  </div>
+
+  <h2 style="text-align:center;">Truth or Debt 💀</h2>
+  <div class="task-box" id="truthBox" style="text-align:center;">
+    <p id="truthQuestion">Loading...</p>
+    <input id="truthAnswer" type="text" placeholder="Type your humiliating answer...">
+    <button onclick="submitTruth()">Submit</button>
+  </div>
+
+  <h2 style="text-align:center;">Daily Prompt</h2>
+  <div class="task-box" id="promptBox" style="text-align:center;">
+    <p id="dailyPrompt"></p>
+    <textarea id="promptAnswer" placeholder="Write your humiliating answer..."></textarea>
+    <button onclick="submitPrompt()">Submit Prompt</button>
   </div>
 
   <h2 style="text-align:center;">Relapse Diary</h2>
   <div id="relapseSection" class="relapse-box">
-    <div id="relapseHistory"></div>
-    <div id="relapseForm"></div>
-    <button onclick="addRelapseRow()">➕ Add Entry</button>
-    <button onclick="submitRelapse()">Submit Relapse</button>
+    <div id="relapseHistory">Loading relapse history...</div>
+    <div id="relapseForm" style="margin-top:12px;"></div>
+    <div style="text-align:center;margin-top:10px;">
+      <button onclick="addRelapseRow()">➕ Add Entry</button>
+      <button onclick="submitRelapse()">Submit Relapse</button>
+    </div>
   </div>
 
-  <script>
-    const humiliatingTasks = [
-      "Write 'I AM SHAI'S TOY' 100 times on paper and upload proof.",
-      "Go outside wearing something pink, take a selfie, upload it.",
-      "Record yourself begging for mercy while holding a sign with your debt.",
-      "Draw Shai’s name on your body in lipstick, take a picture, upload it."
-    ];
+  <div style="text-align:center;margin-top:20px;"><a href="leaderboard.html">📊 View Leaderboard</a></div>
 
-    function assignTask(account) {
-      if (!account.hastask) {
-        const task = humiliatingTasks[Math.floor(Math.random() * humiliatingTasks.length)];
-        return { task, hasTask: true };
-      }
-      return { task: account.currenttask, hasTask: true };
-    }
-
-    async function loadAccount() {
-      const params = new URLSearchParams(window.location.search);
-      const code = params.get("id");
-      if (!code) return;
-
-      const res = await fetch(`/.netlify/functions/getUser?code=${code}`);
-      const data = await res.json();
-
-      if (res.ok) {
-        document.getElementById("accountTitle").innerText = `Shai's Submissive: ${code}`;
-        document.getElementById("debt").innerText = `Debt to Shai: $${data.debt.toFixed(2)}`;
-
-        // Assign or show task
-        let taskInfo = assignTask(data);
-        document.getElementById("taskBox").innerHTML = `
-          <p>${taskInfo.task || "Check back for new assignment later, beta."}</p>
-          ${taskInfo.hasTask ? `
-            <input type="file" id="taskFile" accept="image/*,video/*" style="margin-top:10px;">
-            <button onclick="submitTask()">Submit Task</button>
-          ` : ""}
-        `;
-
-        // Load relapse history
-        loadRelapseHistory(code);
-
-        // Init relapse form
-        addRelapseRow();
-      }
-    }
-
-    function submitTask() {
-      const file = document.getElementById("taskFile").files[0];
-      if (!file) {
-        alert("You must upload proof to complete this task!");
-        return;
-      }
-      alert("Task submitted for review (not actually uploaded).");
-    }
-
-    function addRelapseRow() {
-      const form = document.getElementById("relapseForm");
-      const row = document.createElement("div");
-      row.classList.add("relapse-row");
-      row.innerHTML = `
-        <textarea placeholder="Confess your relapse..."></textarea>
-        <input type="number" placeholder="$ amount sent">
-        <select>
-          <option value="">Platform...</option>
-          <option value="CashApp">CashApp</option>
-          <option value="Throne">Throne</option>
-        </select>
-      `;
-      form.appendChild(row);
-    }
-
-    async function submitRelapse() {
-      const params = new URLSearchParams(window.location.search);
-      const code = params.get("id");
-
-      const rows = document.querySelectorAll("#relapseForm .relapse-row");
-      let entries = [];
-
-      rows.forEach(r => {
-        const note = r.querySelector("textarea").value.trim();
-        const amount = parseFloat(r.querySelector("input").value) || 0;
-        const platform = r.querySelector("select").value;
-        if (note && amount > 0 && platform) {
-          entries.push({ note, amount, platform });
-        }
-      });
-
-      if (entries.length === 0) {
-        alert("Fill out at least one relapse entry.");
-        return;
-      }
-
-      const res = await fetch('/.netlify/functions/addRelapse', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ code, entries })
-      });
-
-      if (res.ok) {
-        alert("Relapse submitted. Debt updated.");
-        location.reload();
-      } else {
-        alert("Error saving relapse.");
-      }
-    }
-
-    async function loadRelapseHistory(code) {
-      const res = await fetch(`/.netlify/functions/getRelapse?code=${code}`);
-      const data = await res.json();
-      const container = document.getElementById("relapseHistory");
-      if (res.ok && data.length > 0) {
-        container.innerHTML = data.map(e => `
-          <div class="relapse-entry">
-            <p><b>${new Date(e.createdat).toLocaleString()}</b> — ${e.platform}</p>
-            <p>${e.note}</p>
-            <p style="color:red;">-$${e.amount.toFixed(2)}</p>
-          </div>
-        `).join("");
-      } else {
-        container.innerHTML = "<p>No relapse history yet, beta.</p>";
-      }
-    }
-
-    loadAccount();
-  </script>
+  <script src="account.js"></script>
 </body>
 </html>

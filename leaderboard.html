@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Leaderboard</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <h1 style="text-align:center; margin-top:24px;">📊 Leaderboard of Losers</h1>
+  <div id="board" class="task-box" style="max-width:800px; margin:20px auto;"></div>
+  <script>
+    async function loadBoard(){
+      const res = await fetch('/.netlify/functions/getLeaderboard');
+      const data = await res.json();
+      const el = document.getElementById('board');
+      if(!res.ok){ el.innerText='Error loading board'; return; }
+      el.innerHTML = data.map((u,i)=>`<div style="padding:8px 0;"><b>#${i+1}</b> — id: ${u.code} | debt: $${Number(u.debt).toFixed(2)} | title: ${u.title}</div>`).join('');
+    }
+    loadBoard();
+  </script>
+</body>
+</html>
+

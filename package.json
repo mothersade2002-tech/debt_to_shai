@@ -1,23 +1,9 @@
 {
-  "name": "debt_to_shai",
+  "name": "findom-debt-portal",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/mothersade2002-tech/debt_to_shai.git"
-  },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "bugs": {
-    "url": "https://github.com/mothersade2002-tech/debt_to_shai/issues"
-  },
-  "homepage": "https://github.com/mothersade2002-tech/debt_to_shai#readme",
+  "type": "module",
   "dependencies": {
-    "pg": "^8.16.3"
+    "pg": "^8.11.3"
   }
 }
+

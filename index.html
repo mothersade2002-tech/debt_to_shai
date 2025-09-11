@@ -1,37 +1,44 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="utf-8" />
   <title>Debt Calculator Shai</title>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <link rel="stylesheet" href="style.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 </head>
 <body>
 
-<h1 class="spicy-text">Debt Calculator Shai</h1>
+  <div class="watermark">PROPERTY OF SHAI</div>
 
-<!-- Questions will be loaded dynamically -->
-<div id="questions"></div>
+  <header>
+    <h1 class="spicy-text">Debt Calculator Shai</h1>
+  </header>
 
-<div id="results"></div>
-<button id="downloadPdf" style="display:none;" onclick="downloadPDF()">Download Your Humiliating Debt Slip</button>
+  <main>
+    <section id="surveyArea">
+      <div id="questions"></div>
+      <div id="results"></div>
+      <div style="text-align:center;">
+        <button id="downloadPdf" style="display:none;" onclick="downloadPDF()">Download Debt Slip</button>
+      </div>
+    </section>
 
-<!-- Lookup Section -->
-<div id="lookup">
-  <input type="text" id="lookupCode" placeholder="Enter your 6-digit code">
-  <button onclick="goToAccount()">Retrieve Account</button>
-</div>
+    <section id="lookup" class="lookup">
+      <input type="text" id="lookupCode" placeholder="Enter your 6-digit code">
+      <button onclick="goToAccount()">Retrieve Account</button>
+    </section>
 
-<script src="script.js"></script>
-<script>
-  // Load external questions.html into #questions
-  async function loadQuestions() {
-    const response = await fetch("questions.html");
-    const html = await response.text();
-    document.getElementById("questions").innerHTML = html;
-  }
-  loadQuestions();
-</script>
+    <div class="hint">Tip: Finish the survey honestly. The faster you finish the costlier it gets.</div>
+  </main>
 
+  <script src="script.js"></script>
+  <script>
+    async function loadQuestions(){
+      const res = await fetch('questions.html');
+      const html = await res.text();
+      document.getElementById('questions').innerHTML = html;
+    }
+    loadQuestions();
+  </script>
 </body>
 </html>

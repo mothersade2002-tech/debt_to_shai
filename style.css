@@ -1,112 +1,131 @@
-body {
-  margin: 0;
-  padding: 0;
-  font-family: 'Comic Sans MS', cursive, sans-serif;
-  overflow-x: hidden;
-  color: #fff;
-  background: radial-gradient(circle at center, #ff69b4, #ff1493);
+:root{
+  --bg1:#ff69b4;
+  --bg2:#ff1493;
+  --accent:#ff69b4;
+  --accent-dark:#ff1493;
+  --white: #fff;
+  --red: #ff1744;
 }
 
-.question {
-  display: none;
-  margin: 20px auto;
-  max-width: 600px;
-  text-align: center;
-  background: rgba(255, 192, 203, 0.8);
-  padding: 20px;
-  border: 2px solid #ff1493;
-  border-radius: 25px;
-  color: #fff;
-  box-shadow: 0 0 15px #ff1493;
+/* base */
+*{box-sizing:border-box}
+body{
+  margin:0;
+  font-family:'Comic Sans MS',cursive, sans-serif;
+  background: radial-gradient(circle at center, var(--bg1), var(--bg2));
+  color:var(--white);
+  overflow-x:hidden;
+  position:relative;
 }
 
-.question.active {
-  display: block;
+/* watermark */
+.watermark{
+  position:fixed;
+  left:50%;
+  top:45%;
+  transform:translate(-50%,-50%) rotate(-30deg);
+  font-size:6rem;
+  color:rgba(255,0,102,0.06);
+  pointer-events:none;
+  z-index:0;
 }
 
-button {
-  background: #ff69b4;
-  color: white;
-  border: 2px solid #ff1493;
-  padding: 12px 24px;
-  border-radius: 25px;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  font-weight: bold;
-  font-family: 'Comic Sans MS', cursive, sans-serif;
-  box-shadow: 0 0 10px #ff1493;
-  margin-top: 10px;
-}
-
-button:hover {
-  transform: scale(1.1) rotate(-2deg);
-  box-shadow: 0 0 20px #fff;
-}
-
-.spicy-text {
-  color: #fff;
-  text-align: center;
-  animation: floatRotate 3s ease-in-out infinite;
-  display: block;
-  transform-origin: center;
-  font-family: 'Comic Sans MS', cursive, sans-serif;
-  font-weight: bold;
-  font-size: 48px;
+/* header */
+header{ text-align:center; padding:32px 10px; z-index:2; position:relative; }
+.spicy-text{
+  font-size:48px;
   text-shadow: 3px 3px 5px #ff1493, 6px 6px 10px #ff69b4, 9px 9px 15px #fff;
   transform: perspective(500px) rotateX(5deg) rotateY(5deg);
+  animation: floatRotate 3s ease-in-out infinite;
 }
 
-@keyframes floatRotate {
-  0% { transform: translateY(0) rotate(0deg); }
-  25% { transform: translateY(-10px) rotate(2deg); }
-  50% { transform: translateY(0) rotate(0deg); }
-  75% { transform: translateY(-10px) rotate(-2deg); }
-  100% { transform: translateY(0) rotate(0deg); }
+/* questions */
+.question{ display:none; margin:20px auto; max-width:640px; text-align:center;
+  background: rgba(255, 192, 203, 0.85); padding:20px; border-radius:20px;
+  border: 4px solid transparent; border-image: linear-gradient(90deg, #ff69b4, #ff1493) 1;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.25); position:relative; z-index:2;
+}
+.question.active{ display:block; animation:slideIn .45s ease; }
+
+/* buttons + inputs */
+button{
+  background:var(--accent);
+  color:var(--white);
+  border:2px solid var(--accent-dark);
+  padding:12px 22px;border-radius:22px;font-weight:bold;
+  cursor:pointer; box-shadow:0 8px 20px rgba(255,20,147,0.12);
+  transition: transform .2s ease, box-shadow .2s;
+}
+button:hover{ transform:scale(1.05) rotate(-2deg); box-shadow:0 16px 40px rgba(255,20,147,0.22) }
+input, textarea, select{
+  display:block;margin:10px auto;padding:10px;font-size:16px;width:80%;max-width:460px;border-radius:12px;
+  border:2px solid var(--accent-dark); background: rgba(255,182,193,0.9); color:var(--white);
+  text-shadow:1px 1px 2px #ff69b4;
 }
 
-input, textarea, select {
-  display: block;
-  margin: 10px auto;
-  padding: 10px;
-  font-size: 16px;
-  width: 80%;
-  max-width: 400px;
-  border-radius: 15px;
-  border: 2px solid #ff1493;
-  background: rgba(255,182,193,0.8);
-  color: #fff;
-  font-family: 'Comic Sans MS', cursive, sans-serif;
-  text-shadow: 1px 1px 2px #ff69b4;
+/* results + debt */
+#results{ text-align:center; margin-top:20px; z-index:2; }
+.amount{ color:var(--red); font-weight:900; }
+
+/* download button bigger center */
+#downloadPdf{ display:none; margin:20px auto; font-size:18px; padding:14px 32px; }
+
+/* lookup */
+.lookup{ text-align:center; margin:28px 0; z-index:2 }
+
+/* account header / debt big */
+.account-header{
+  display:flex; justify-content:space-between; align-items:center; margin:20px auto; max-width:900px; padding:0 20px; z-index:2;
+}
+.account-header h1{ font-size:44px; color:var(--red); margin:0; line-height:1.1; }
+.account-header h2{ font-size:20px; color:var(--white); opacity:0.95; margin:0; text-align:right; }
+
+/* debt animation / glow */
+.shake-text { animation: shake 0.5s linear 0s 1, glow 1.6s ease-in-out infinite alternate; }
+@keyframes shake{ 0%{transform:translateX(0)}25%{transform:translateX(-6px)}50%{transform:translateX(6px)}75%{transform:translateX(-4px)}100%{transform:translateX(0)}}
+@keyframes glow{ from { text-shadow:0 0 6px crimson } to { text-shadow:0 0 20px deeppink } }
+
+/* debt bar */
+.debt-bar { height:20px; max-width:900px; margin:12px auto; background:rgba(255,182,193,0.3); border-radius:12px; overflow:hidden; border:2px solid rgba(255,20,147,0.08); }
+.debt-fill { height:100%; width:0%; background: linear-gradient(90deg, crimson, hotpink); transition:width .8s cubic-bezier(.2,.8,.2,1); box-shadow:0 8px 30px rgba(255,20,147,0.14) }
+
+/* task & relapse boxes */
+.task-box, .relapse-box, .task-section { margin:20px auto; max-width:900px; padding:20px; border-radius:14px;
+  border:3px solid rgba(255,20,147,0.16); background: rgba(255,192,203,0.88); z-index:2; position:relative;
+  box-shadow: 0 12px 40px rgba(0,0,0,0.2);
 }
 
-#results {
-  text-align: center;
-  font-size: 24px;
-  font-weight: bold;
-  color: red;
-  text-shadow: 2px 2px 4px #fff;
-  margin-top: 20px;
+/* chain border effect - using simple dotted double border for effect (no external image) */
+.task-box { border-style:double; border-width:4px; }
+
+/* relapse history style */
+.relapse-entry{ border-bottom:1px dashed rgba(255,20,147,0.25); padding:10px 0; margin:6px 0; }
+
+/* relapse row repeater */
+.relapse-row{ display:flex; gap:10px; margin-bottom:10px; }
+.relapse-row textarea{ flex:2; height:70px; resize:vertical; padding:10px; background: rgba(255,182,193,0.95) }
+.relapse-row input, .relapse-row select{ flex:1; padding:10px; }
+
+/* wheel animation */
+#wheel{ width:260px; height:260px; margin: 10px auto; border-radius:50%; border:8px solid rgba(255,20,147,0.24); position:relative; background: conic-gradient(#ff69b4 0 20%, #ff8ab8 20% 40%, #ff2a80 40% 60%, #ffb3d9 60% 80%, #ff69b4 80% 100%); }
+#wheel .pointer{ position:absolute; top:-24px; left:50%; transform:translateX(-50%); width:0;height:0;border-left:14px solid transparent;border-right:14px solid transparent;border-bottom:16px solid #fff; }
+
+/* cursor fetish */
+button:hover{ cursor:url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32"><text y="24" font-size="24">👠</text></svg>') 16 0, pointer; }
+
+/* tooltips (humiliating) */
+button[data-tip]:hover::after{
+  content:attr(data-tip); position:absolute; transform:translateY(-120%); background:#000; color:var(--accent); padding:6px 10px; border-radius:6px; font-size:13px;
 }
 
-#results span.amount {
-  color: red;
-}
+/* screen distortion for extremely high debt */
+.screen-distort{ filter: blur(1.5px) saturate(0.6); transform:scale(1.01); }
 
-#downloadPdf {
-  display: none;
-  margin: 30px auto;
-  font-size: 20px;
-  padding: 16px 32px;
-}
+/* small animations */
+@keyframes slideIn{ from{ opacity:0; transform:translateY(10px) } to { opacity:1; transform:translateY(0) } }
 
-#lookup {
-  text-align: center;
-  margin-top: 40px;
+/* responsive */
+@media (max-width:700px){
+  .account-header{ flex-direction:column; gap:10px; text-align:center }
+  .account-header h1{ font-size:28px }
 }
-
-#lookupResult {
-  margin-top: 20px;
-  font-size: 18px;
-  color: #fff;
-}
-

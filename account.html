@@ -1,63 +1,52 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="utf-8" />
-  <title>Shai's Submissive Account</title>
-  <link rel="stylesheet" href="style.css" />
-</head>
+<!doctype html>
+<html><head><meta charset="utf-8"><title>Account</title><link rel="stylesheet" href="style.css"></head>
 <body>
-  <div class="watermark">PROPERTY OF SHAI</div>
-
-  <div class="account-header">
-    <div>
-      <h2 id="accountTitle">Shai's Submissive: --</h2>
-      <p id="rankLine" style="margin:4px 0 0;color:rgba(255,255,255,0.9)"></p>
+  <div id="modal" class="modal hidden"><div class="modal-window"><div id="modalMsg"></div><div style="text-align:center;margin-top:12px;"><button onclick="closeModal()">ok</button></div></div></div>
+  <header class="header-box">
+    <div class="header-left">
+      <h1 id="subId">Sub: --</h1>
+      <p id="rank">Rank: --</p>
+      <p id="title">Title: --</p>
     </div>
-    <div>
-      <h1 style="margin:0;font-size:36px;color:#fff">Debt to Shai: <span id="debtAmount" class="amount-box">$0.00</span></h1>
+    <div class="header-right">
+      <h2>Debt to Shai:</h2>
+      <div class="debt-box"><span id="debtVal">$0.00</span></div>
     </div>
-  </div>
-
-  <div class="debt-bar"><div id="debtFill" class="debt-fill">owes shai</div></div>
-
-  <div class="controls-grid">
-    <div>
-      <h2 style="text-align:center;">Tasks</h2>
-      <div id="taskSection" class="task-box"><div id="taskBox">Loading tasks...</div></div>
-
-      <h2 style="text-align:center;margin-top:14px;">Wheel of Debt 🎡</h2>
-      <div class="task-box" style="text-align:center;">
-        <div id="wheel" aria-hidden="true"><div class="pointer"></div></div>
-        <div id="wheelControls" style="margin-top:8px;">
-          <button id="spinBtn" onclick="spinWheel()">Spin the Wheel</button>
-          <p id="wheelResult"></p>
-          <p id="spinTimer" style="margin-top:6px;color:#fff;"></p>
+  </header>
+  <div class="progress-wrap" style="max-width:1000px;margin:12px auto;"><div class="debt-bar"><div id="debtFill" class="debt-fill">Money Spent: 0%</div></div></div>
+  <main class="container">
+    <section class="top-row">
+      <div class="tasks-panel">
+        <h3>Tasks</h3>
+        <div id="tasksList" class="task-box">loading tasks...</div>
+      </div>
+      <div class="games-panel">
+        <h3>Wheel of Debt</h3>
+        <div class="task-box">
+          <div id="wheelWrap"><canvas id="wheel" width="300" height="300"></canvas><div id="wheelPointer" class="pointer">▶</div></div>
+          <div style="text-align:center;margin-top:8px;"><button id="spinBtn" onclick="spinWheel()">spin</button><p id="wheelMsg"></p></div>
         </div>
       </div>
+    </section>
 
-      <div style="text-align:center;margin-top:12px;"><a href="leaderboard.html">📊 View Leaderboard</a></div>
-    </div>
-
-    <div>
-      <h2 style="text-align:center;">Relapse Diary</h2>
-      <div id="relapseSection" class="relapse-box">
-        <div id="relapseHistory">Loading relapse history...</div>
-        <div id="relapseForm" style="margin-top:12px;"></div>
-        <div style="text-align:center;margin-top:10px;">
-          <button onclick="addRelapseRow()">➕ Add Entry</button>
-          <button onclick="submitRelapse()">Submit Relapse</button>
+    <section class="bottom-row">
+      <div class="relapse-panel">
+        <h3>Relapse Diary</h3>
+        <div class="relapse-box">
+          <div id="relapseForm"></div>
+          <div style="display:flex;gap:8px;align-items:center;margin-top:8px;"><button onclick="addRelapseRow()">add entry</button><button id="submitRelapseBtn" onclick="submitRelapse()">submit relapse</button></div>
+          <h4>History</h4>
+          <div id="relapseHistory" class="history-box">loading...</div>
         </div>
       </div>
+      <div class="ledger-panel">
+        <h3>Ledger</h3>
+        <div class="relapse-box"><div id="ledgerInner" class="ledger-inner">loading ledger...</div></div>
+      </div>
+    </section>
 
-    </div>
-  </div>
+    <div style="text-align:center;margin-top:16px;"><a id="backLeaderboard" href="leaderboard.html">view leaderboard</a></div>
+  </main>
 
-  <div class="leaderboard" id="leaderboardFooter"></div>
-
-  <audio id="giggleAudio" src="assets/giggle.mp3" preload="auto"></audio>
-  <audio id="cashAudio" src="assets/cash-register.mp3" preload="auto"></audio>
-  <audio id="whipAudio" src="assets/whip-crack.mp3" preload="auto"></audio>
-
-  <script src="account.js"></script>
-</body>
-</html>
+<script src="account.js"></script>
+</body></html>

@@ -1,98 +1,131 @@
-function fmt(n){ return Number(n||0).toFixed(2); }
+// account page JS
+function fmt(n){return Number(n||0).toFixed(2);}
+let userCode = new URLSearchParams(window.location.search).get('id');
 
-let wheelCooldownHours = 24;
+function showModal(msg){document.getElementById('modalMsg').innerText=msg; document.getElementById('modal').classList.remove('hidden');}
+function closeModal(){document.getElementById('modal').classList.add('hidden');}
 
 async function loadAccount(){
-  const params = new URLSearchParams(window.location.search);
-  const code = params.get('id');
-  if(!code) return;
+  if(!userCode){ showModal('no user specified'); return; }
   try{
-    const res = await fetch(`/.netlify/functions/getUser?code=${code}`);
-    if(!res.ok){ document.getElementById('taskBox').innerText='Account not found'; return; }
-    const data = await res.json();
+    const res=await fetch('/.netlify/functions/getUser?code='+encodeURIComponent(userCode));
+    if(!res.ok){ showModal('account not found'); return; }
+    const data=await res.json();
+    document.getElementById('subId').innerText='Sub: '+data.code;
+    document.getElementById('rank').innerText='Rank: --';
+    document.getElementById('title').innerText='Title: '+(data.title||'worm');
+    document.getElementById('debtVal').innerText='$'+fmt(data.debt||0);
 
-    document.getElementById('accountTitle').innerText = `Shai's Submissive: ${code}`;
-    const leaderboard = await fetch('/.netlify/functions/getLeaderboard');
-    const lb = await leaderboard.json();
-    const rank = (lb.findIndex(u => u.code === code) + 1) || '—';
-    document.getElementById('rankLine').innerText = rank !== '—' ? `Rank: #${rank}` : 'Rank: unranked';
-    document.getElementById('leaderboardFooter').innerHTML = `Your Rank: ${rank === '—' ? 'N/A' : '#'+rank}`;
+    // tasks: query tasks table for this code
+    const tRes=await fetch('/.netlify/functions/getTasks?code='+encodeURIComponent(userCode));
+    if(tRes.ok){
+      const tasks=await tRes.json();
+      const container=document.getElementById('tasksList');
+      if(tasks.length===0) container.innerHTML='<p>no tasks</p>';
+      else{
+        container.innerHTML='';
+        tasks.forEach(t=>{
+          const el=document.createElement('div'); el.className='task-entry'; el.innerHTML=`<b>${t.task_name}</b><p>Completed: ${t.completed}</p>`;
+          container.appendChild(el);
+        });
+      }
+    }
 
-    document.getElementById('debtAmount').innerText = `$${fmt(data.debt)}`;
-    const cap = 2000;
-    const pct = Math.min(100, (Number(data.debt||0)/cap)*100);
+    // relapse history
+    const rRes=await fetch('/.netlify/functions/getRelapse?code='+encodeURIComponent(userCode));
+    const rData = rRes.ok ? await rRes.json() : [];
+    const hist=document.getElementById('relapseHistory'); hist.innerHTML='';
+    let totalSpent = 0;
+    rData.forEach(r=>{ const d=document.createElement('div'); d.innerHTML=`<p><b>${new Date(r.createdat).toLocaleString()}</b> - ${r.platform} - $${fmt(r.amount)}</p><p>${r.note}</p><hr>`; hist.appendChild(d); totalSpent += Number(r.amount||0); });
+
+    // ledger: simple aggregation from relapses and tasks and debt changes
+    const ledger=document.getElementById('ledgerInner'); ledger.innerHTML='';
+    rData.forEach(r=>{ const row=document.createElement('div'); row.innerHTML=`<div style="display:flex;justify-content:space-between;"><span>${new Date(r.createdat).toLocaleDateString()}</span><span style="color:green">- $${fmt(r.amount)}</span></div>`; ledger.appendChild(row); });
+    const debtRow=document.createElement('div'); debtRow.innerHTML = `<div style="display:flex;justify-content:space-between;"><span>current debt</span><span style="color:red">$${fmt(data.debt||0)}</span></div>`; ledger.prepend(debtRow);
+
+    // progress bar "Money Spent" = sum(relapse amounts) / debt
+    const cap = Number(data.debt||1);
+    const pct = cap>0 ? Math.min(100, (totalSpent/cap)*100) : 0;
     const fill = document.getElementById('debtFill');
-    fill.style.width = pct + '%';
-    fill.style.letterSpacing = Math.max(1, Math.floor(pct/6)) + 'px';
-    fill.innerText = 'debt progress';
-
-    if(!data.hastask){
-      document.getElementById('taskBox').innerHTML = `<p>Check back for new assignment later, beta.</p>`;
-    } else {
-      document.getElementById('taskBox').innerHTML = `<p style="font-weight:bold">${data.currenttaskdesc || 'Your task'}</p>
-        <p style="opacity:0.9">Reward: $${fmt(data.currenttaskreward||0)}</p>
-        <input type="file" id="taskFile" accept="image/*,video/*,audio/*" />
-        <div style="margin-top:8px;"><button onclick="submitTask('${code}')">Submit Proof</button></div>`;
-    }
-
-    const lastSpin = data.lastspin ? new Date(data.lastspin) : null;
-    const now = new Date();
-    const spinBtn = document.getElementById('spinBtn');
-    const spinTimer = document.getElementById('spinTimer');
-    if(lastSpin){
-      const diffHours = (now - lastSpin)/ (1000*60*60);
-      if(diffHours < wheelCooldownHours){ spinBtn.disabled = true; const remaining = wheelCooldownHours - diffHours; spinTimer.innerText = `Spin available in ${Math.ceil(remaining)} hours`; }
-      else { spinBtn.disabled=false; spinTimer.innerText=''; }
-    }
-
-    await loadRelapseHistory(code);
-    document.getElementById('relapseForm').innerHTML=''; addRelapseRow();
-
-  }catch(err){ console.error(err); document.getElementById('taskBox').innerText='Error loading account'; }
+    if(fill){ fill.style.width = pct + '%'; fill.innerText = 'Money Spent: '+Math.round(pct)+'%'; }
+  }catch(e){ console.error(e); showModal('error loading account'); }
 }
 
-async function submitTask(code){
-  const input = document.getElementById('taskFile'); if(!input || !input.files || input.files.length===0){ alert('Attach proof first'); return; }
-  const f = input.files[0]; if(f.size > 100*1024*1024){ alert('File too large'); return; }
-  try{ const res = await fetch('/.netlify/functions/submitTask', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ code, proof_filename:f.name, proof_size:f.size })}); const body = await res.json(); if(res.ok){ document.getElementById('cashAudio').play(); alert('Task submitted.'); loadAccount(); } else alert(body.error||'Error'); }catch(e){ console.error(e); alert('Error'); }
+// Wheel implementation: draw wheel with labels and pointer on side
+function drawWheel(sectors){
+  const canvas=document.getElementById('wheel'); const ctx=canvas.getContext('2d');
+  const w=canvas.width, h=canvas.height; const cx=w/2, cy=h/2, r=Math.min(w,h)/2-8;
+  ctx.clearRect(0,0,w,h);
+  const arc = Math.PI*2 / sectors.length;
+  sectors.forEach((s,i)=>{
+    const start = -Math.PI/2 + i*arc;
+    ctx.beginPath(); ctx.moveTo(cx,cy); ctx.arc(cx,cy,r,start,start+arc); ctx.closePath();
+    ctx.fillStyle = i%2===0 ? '#ff8ab8' : '#ff2a80'; ctx.fill();
+    // text
+    ctx.save(); ctx.translate(cx,cy); ctx.rotate(start+arc/2); ctx.textAlign='right'; ctx.fillStyle='#fff'; ctx.font='14px sans-serif'; ctx.fillText(s.label, r-10, 0); ctx.restore();
+  });
 }
-
+let wheelSpinning=false;
 async function spinWheel(){
+  if(wheelSpinning){ return; }
+  const res = await fetch('/.netlify/functions/getUser?code='+encodeURIComponent(userCode));
+  if(!res.ok){ showModal('cannot spin'); return; }
+  const data = await res.json();
+  const last = data.lastspin ? new Date(data.lastspin) : null;
+  if(last && (Date.now() - last.getTime()) < 24*3600*1000){ document.getElementById('wheelMsg').innerText='spin not available'; return; }
+
   const sectors = [
-    {label:'add $5', change:5, weight:1},
-    {label:'add $20', change:20, weight:1},
-    {label:'double debt', change:'double', weight:5},
-    {label:'subtract $10', change:-10, weight:1},
-    {label:'subtract $50', change:-50, weight:1},
-    {label:'clear all debt', change:'clear', weight:0}
+    {label:'add $5', change:5},
+    {label:'add $20', change:20},
+    {label:'double debt', change:'double'},
+    {label:'sub $10', change:-10},
+    {label:'sub $50', change:-50},
+    {label:'clear all', change:'clear'}
   ];
-  const pool = [];
-  sectors.forEach((s,i)=>{ for(let k=0;k<s.weight;k++) pool.push({...s, idx:i}); });
+  drawWheel(sectors);
+  wheelSpinning=true;
+  const pool=[];
+  sectors.forEach(s=>{ const w = s.change==='double'?6:(s.change==='clear'?0:1); for(let i=0;i<w;i++) pool.push(s); });
   const pick = pool[Math.floor(Math.random()*pool.length)];
-  const wheel = document.getElementById('wheel'); const deg = 360*6 + Math.floor(Math.random()*360);
-  wheel.style.transition='transform 3s cubic-bezier(.2,.9,.2,1)'; wheel.style.transform=`rotate(${deg}deg)`;
   setTimeout(async ()=>{
-    document.getElementById('wheelResult').innerText = `Result: ${pick.label}`;
-    const params = new URLSearchParams(window.location.search); const code = params.get('id'); if(!code) return;
-    if(pick.change === 'double'){
-      await fetch('/.netlify/functions/updateDebt',{method:'POST',headers:{'Content-Type':'application/json'},body: JSON.stringify({ code, newDebtChange: (await getDebt(code)) })});
-      document.getElementById('whipAudio').play(); alert('Your debt has been doubled.'); 
-    } else if(pick.change === 'clear'){
-      alert('Lucky? Not possible. Nothing happened.');
+    document.getElementById('wheelMsg').innerText='result: '+pick.label;
+    if(pick.change==='double'){
+      const current = Number((await (await fetch('/.netlify/functions/getUser?code='+encodeURIComponent(userCode))).then(r=>r.json())).debt||0);
+      await fetch('/.netlify/functions/updateDebt',{method:'POST',headers:{'Content-Type':'application/json'},body: JSON.stringify({ code:userCode, newDebtChange: current })});
+    } else if(pick.change==='clear'){
     } else {
-      await fetch('/.netlify/functions/updateDebt',{method:'POST',headers:{'Content-Type':'application/json'},body: JSON.stringify({ code, newDebtChange: pick.change })});
-      document.getElementById('whipAudio').play(); alert(`Wheel outcome: ${pick.label}`);
+      await fetch('/.netlify/functions/updateDebt',{method:'POST',headers:{'Content-Type':'application/json'},body: JSON.stringify({ code:userCode, newDebtChange: pick.change })});
     }
-    await fetch('/.netlify/functions/setLastSpin',{method:'POST',headers:{'Content-Type':'application/json'},body: JSON.stringify({ code })});
-    loadAccount(); setTimeout(()=>{ wheel.style.transition='none'; wheel.style.transform='rotate(0deg)'; },3500);
-  },3100);
+    await fetch('/.netlify/functions/setLastSpin',{method:'POST',headers:{'Content-Type':'application/json'},body: JSON.stringify({ code:userCode })});
+    wheelSpinning=false;
+    loadAccount();
+  }, 1800);
 }
 
-async function getDebt(code){ const r = await fetch(`/.netlify/functions/getUser?code=${code}`); const d = await r.json(); return Number(d.debt||0); }
+// relapse functions
+function addRelapseRow(){
+  const c = document.getElementById('relapseForm');
+  const row = document.createElement('div'); row.className='relapse-row';
+  row.innerHTML = '<input class="r-note" placeholder="confession" style="width:60%"><input class="r-amt" placeholder="$ amount" style="width:20%"><select class="r-platform" style="width:18%"><option value="">platform</option><option value="CashApp">CashApp</option><option value="Throne">Throne</option></select>';
+  c.appendChild(row);
+  updateSubmitState();
+}
+function updateSubmitState(){
+  const rows = document.querySelectorAll('.relapse-row');
+  let ok=false;
+  rows.forEach(r=>{ const note=r.querySelector('.r-note').value.trim(); const amt=parseFloat(r.querySelector('.r-amt').value)||0; const plat=r.querySelector('.r-platform').value; if(note && amt>0 && plat) ok=true; });
+  document.getElementById('submitRelapseBtn').disabled = !ok;
+}
+async function submitRelapse(){
+  const rows = document.querySelectorAll('.relapse-row');
+  const entries=[];
+  rows.forEach(r=>{ const note=r.querySelector('.r-note').value.trim(); const amt=parseFloat(r.querySelector('.r-amt').value)||0; const plat=r.querySelector('.r-platform').value; if(note && amt>0 && plat) entries.push({note,amount:amt,platform:plat}); });
+  if(entries.length===0) return;
+  showModal('Submitting relapse... giggle');
+  await fetch('/.netlify/functions/addRelapse',{method:'POST',headers:{'Content-Type':'application/json'},body: JSON.stringify({ code:userCode, entries })});
+  closeModal();
+  loadAccount();
+}
 
-function addRelapseRow(){ const c = document.getElementById('relapseForm'); const row = document.createElement('div'); row.className='relapse-row'; row.innerHTML = `<textarea placeholder="Confess..."></textarea><input type="number" placeholder="$ amount" /><select><option value="">Platform</option><option value="CashApp">CashApp</option><option value="Throne">Throne</option></select>`; c.appendChild(row); }
-async function submitRelapse(){ const params = new URLSearchParams(window.location.search); const code = params.get('id'); if(!code) return; const rows = document.querySelectorAll('#relapseForm .relapse-row'); const entries=[]; rows.forEach(r=>{ const note=(r.querySelector('textarea')||{}).value.trim(); const amount=parseFloat((r.querySelector('input')||{}).value)||0; const platform=(r.querySelector('select')||{}).value||''; if(note && amount>0 && platform) entries.push({note,amount,platform}); }); if(entries.length===0) return alert('Add at least one valid entry'); document.getElementById('giggleAudio').play(); setTimeout(async ()=>{ await fetch('/.netlify/functions/addRelapse',{method:'POST',headers:{'Content-Type':'application/json'},body: JSON.stringify({ code, entries })}); document.getElementById('cashAudio').play(); alert('Relapse submitted.'); loadAccount(); },700); }
-
-async function loadRelapseHistory(code){ try{ const res = await fetch(`/.netlify/functions/getRelapse?code=${code}`); const data = await res.json(); const cont = document.getElementById('relapseHistory'); if(res.ok && Array.isArray(data) && data.length>0){ cont.innerHTML = data.map(e=>`<div class="relapse-entry"><p><b>${new Date(e.createdat).toLocaleString()}</b> — ${e.platform}</p><p>${e.note}</p><p style="color:red">-$${fmt(e.amount)}</p></div>`).join(''); } else cont.innerHTML='<p>No relapse history yet.</p>'; }catch(e){ console.error(e); document.getElementById('relapseHistory').innerText='Error'; } }
-
-loadAccount();
+async function init(){ const sectors=[{label:'add $5'},{label:'add $20'},{label:'double debt'},{label:'sub $10'},{label:'sub $50'},{label:'clear all'}]; drawWheel(sectors); loadAccount(); }
+window.addEventListener('load', init);

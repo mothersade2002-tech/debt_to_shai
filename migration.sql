@@ -1,0 +1,34 @@
+-- Migration to ensure schema matches app requirements
+ALTER TABLE user_accounts
+  ADD COLUMN IF NOT EXISTS email TEXT,
+  ADD COLUMN IF NOT EXISTS code TEXT,
+  ADD COLUMN IF NOT EXISTS createdat TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  ADD COLUMN IF NOT EXISTS debt NUMERIC DEFAULT 0,
+  ADD COLUMN IF NOT EXISTS logincount INTEGER DEFAULT 0,
+  ADD COLUMN IF NOT EXISTS lastlogin TIMESTAMP WITH TIME ZONE,
+  ADD COLUMN IF NOT EXISTS lastspin TIMESTAMP WITH TIME ZONE,
+  ADD COLUMN IF NOT EXISTS level INTEGER DEFAULT 1,
+  ADD COLUMN IF NOT EXISTS title TEXT DEFAULT 'worm';
+
+CREATE TABLE IF NOT EXISTS relapses (
+  id SERIAL PRIMARY KEY,
+  code TEXT NOT NULL REFERENCES user_accounts(code) ON DELETE CASCADE,
+  note TEXT,
+  amount NUMERIC,
+  platform TEXT,
+  createdat TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS tasks (
+  id SERIAL PRIMARY KEY,
+  code TEXT NOT NULL REFERENCES user_accounts(code) ON DELETE CASCADE,
+  task_name TEXT,
+  proof_filename TEXT,
+  proof_size INTEGER,
+  completed BOOLEAN DEFAULT FALSE,
+  createdat TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_user_accounts_code ON user_accounts(code);
+CREATE INDEX IF NOT EXISTS idx_relapses_code ON relapses(code);
+CREATE INDEX IF NOT EXISTS idx_tasks_code ON tasks(code);

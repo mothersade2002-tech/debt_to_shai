@@ -1,0 +1,29 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>Confirm Obedience</title><link rel="stylesheet" href="style.css"></head>
+<body>
+  <main class="container">
+    <h2>final step</h2>
+    <p>Type exactly:</p>
+    <blockquote>I live to Obey Shai, I will serve until I repay my debt</blockquote>
+    <input id="phrase">
+    <div class="actions">
+      <button onclick="finalize()">enter account</button>
+      <a href="index.html" class="link">cancel</a>
+    </div>
+    <div id="msg" class="msg"></div>
+  </main>
+<script>
+async function finalize(){
+  const phrase=document.getElementById('phrase').value.trim();
+  const code=sessionStorage.getItem('signin_code');
+  const msg=document.getElementById('msg');
+  if(!code){ msg.innerText='no session'; return; }
+  if(phrase !== 'I live to Obey Shai, I will serve until I repay my debt'){
+    msg.innerText='phrase incorrect. $500 penalty applied.';
+    await fetch('/.netlify/functions/updateDebt',{method:'POST',headers:{'Content-Type':'application/json'},body: JSON.stringify({ code, newDebtChange:500 })});
+    return;
+  }
+  window.location.href = 'account.html?id='+code;
+}
+</script>
+</body></html>

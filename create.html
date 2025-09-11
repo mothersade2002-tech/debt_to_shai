@@ -1,0 +1,57 @@
+<!doctype html>
+<html>
+<head><meta charset="utf-8"><title>Create Account</title><link rel="stylesheet" href="style.css"></head>
+<body>
+  <main class="container">
+    <h2>create account</h2>
+    <form id="createForm">
+      <label>email<input type="email" id="email" required></label>
+      <label>height (inches)<input type="number" id="height" required></label>
+      <label>weight (lbs)<input type="number" id="weight" required></label>
+      <label>age<input type="number" id="age" required></label>
+      <label>face rating (1-10)<input type="number" id="attractiveness" min="1" max="10" required></label>
+      <label>femdom fantasy<textarea id="fantasy"></textarea></label>
+      <label>devotion<select id="devotion"><option value="">select</option><option value="sewer">sewer</option><option value="shoes">shoes</option></select></label>
+      <label>chastity<input id="chastity"></label>
+      <label>feminization<input id="feminization"></label>
+      <label>petplay<input id="petplay"></label>
+      <label>initial tribute ($)<input type="number" id="money" value="0"></label>
+      <div class="actions">
+        <button type="button" onclick="createAccount()">create</button>
+        <a href="index.html" class="link">cancel</a>
+      </div>
+    </form>
+    <div id="msg" class="msg"></div>
+  <script>
+  function randomCode(){return Math.floor(100000+Math.random()*900000).toString();}
+  async function createAccount(){
+    const email=document.getElementById('email').value.trim();
+    const code=randomCode();
+    if(!email){alert('email required');return;}
+    const payload={
+      email, code,
+      height:parseFloat(document.getElementById('height').value)||0,
+      weight:parseFloat(document.getElementById('weight').value)||0,
+      age:parseInt(document.getElementById('age').value)||0,
+      attractiveness:document.getElementById('attractiveness').value,
+      fantasy:document.getElementById('fantasy').value,
+      devotion:document.getElementById('devotion').value,
+      chastity:document.getElementById('chastity').value,
+      feminization:document.getElementById('feminization').value,
+      petplay:document.getElementById('petplay').value,
+      money:parseFloat(document.getElementById('money').value)||0,
+      createdAt:new Date().toISOString(),
+      debt: Math.max(50, (parseFloat(document.getElementById('money').value)||0) + 100)
+    };
+    try{
+      const res=await fetch('/.netlify/functions/saveUser',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
+      if(!res.ok){ const t=await res.text(); throw new Error(t); }
+      const j=await res.json();
+      document.getElementById('msg').innerText='created. your code: '+code;
+      setTimeout(()=>{ window.location.href='signin.html'; },1200);
+    }catch(e){ alert('error: '+e.message); }
+  }
+  </script>
+  </main>
+</body>
+</html>

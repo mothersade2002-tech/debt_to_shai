@@ -1,0 +1,27 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>Sign in</title><link rel="stylesheet" href="style.css"></head>
+<body>
+  <main class="container">
+    <h2>sign in</h2>
+    <label>email<input id="email" type="email"></label>
+    <label>sub id<input id="code" maxlength="6"></label>
+    <div class="actions"><button onclick="startSignin()">continue</button> <a href="index.html" class="link">back</a></div>
+    <div id="msg" class="msg"></div>
+  </main>
+<script>
+async function startSignin(){
+  const email=document.getElementById('email').value.trim();
+  const code=document.getElementById('code').value.trim();
+  const msg=document.getElementById('msg');
+  if(!email||!code){msg.innerText='enter both';return;}
+  try{
+    const res=await fetch('/.netlify/functions/getUser?code='+encodeURIComponent(code));
+    if(!res.ok){ msg.innerText='account not found'; return; }
+    const data=await res.json();
+    if((data.email||'').toLowerCase()!==email.toLowerCase()){ msg.innerText='email mismatch'; return; }
+    sessionStorage.setItem('signin_code', code);
+    window.location.href='confirm.html';
+  }catch(e){ msg.innerText='error'; }
+}
+</script>
+</body></html>

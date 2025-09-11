@@ -3,14 +3,12 @@ const pool = new Pool({ connectionString: process.env.NEON_DB_URL, ssl: { reject
 
 exports.handler = async (event) => {
   try {
-    const { code, proof_filename, proof_size } = JSON.parse(event.body);
-    await pool.query(
-      `INSERT INTO tasks (code, proof_filename, proof_size, createdat) VALUES ($1,$2,$3,NOW())`,
-      [code, proof_filename, proof_size]
-    );
+    const { code } = JSON.parse(event.body);
+    await pool.query('UPDATE user_accounts SET lastspin=NOW() WHERE code=$1', [code]);
     return { statusCode: 200, body: JSON.stringify({ success: true }) };
   } catch (err) {
     console.error(err);
     return { statusCode: 500, body: JSON.stringify({ error: err.message }) };
   }
 };
+

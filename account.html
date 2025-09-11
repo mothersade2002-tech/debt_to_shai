@@ -9,47 +9,54 @@
   <div class="watermark">PROPERTY OF SHAI</div>
 
   <div class="account-header">
-    <h1 id="debt" class="shake-text">Debt to Shai: $0.00</h1>
-    <h2 id="accountTitle">Shai's Submissive: --</h2>
-  </div>
-
-  <div class="debt-bar"><div id="debtFill" class="debt-fill"></div></div>
-
-  <h2 style="text-align:center;">Tasks</h2>
-  <div id="taskSection" class="task-box"><div id="taskBox">Loading tasks...</div></div>
-
-  <h2 style="text-align:center;">Wheel of Debt 🎡</h2>
-  <div class="task-box" style="text-align:center;">
-    <div id="wheel" aria-hidden="true"><div class="pointer"></div></div>
-    <button onclick="spinWheel()">Spin</button>
-    <p id="wheelResult"></p>
-  </div>
-
-  <h2 style="text-align:center;">Truth or Debt 💀</h2>
-  <div class="task-box" id="truthBox" style="text-align:center;">
-    <p id="truthQuestion">Loading...</p>
-    <input id="truthAnswer" type="text" placeholder="Type your humiliating answer...">
-    <button onclick="submitTruth()">Submit</button>
-  </div>
-
-  <h2 style="text-align:center;">Daily Prompt</h2>
-  <div class="task-box" id="promptBox" style="text-align:center;">
-    <p id="dailyPrompt"></p>
-    <textarea id="promptAnswer" placeholder="Write your humiliating answer..."></textarea>
-    <button onclick="submitPrompt()">Submit Prompt</button>
-  </div>
-
-  <h2 style="text-align:center;">Relapse Diary</h2>
-  <div id="relapseSection" class="relapse-box">
-    <div id="relapseHistory">Loading relapse history...</div>
-    <div id="relapseForm" style="margin-top:12px;"></div>
-    <div style="text-align:center;margin-top:10px;">
-      <button onclick="addRelapseRow()">➕ Add Entry</button>
-      <button onclick="submitRelapse()">Submit Relapse</button>
+    <div>
+      <h2 id="accountTitle">Shai's Submissive: --</h2>
+      <p id="rankLine" style="margin:4px 0 0;color:rgba(255,255,255,0.9)"></p>
+    </div>
+    <div>
+      <h1 style="margin:0;font-size:36px;color:#fff">Debt to Shai: <span id="debtAmount" class="amount-box">$0.00</span></h1>
     </div>
   </div>
 
-  <div style="text-align:center;margin-top:20px;"><a href="leaderboard.html">📊 View Leaderboard</a></div>
+  <div class="debt-bar"><div id="debtFill" class="debt-fill">owes shai</div></div>
+
+  <div class="controls-grid">
+    <div>
+      <h2 style="text-align:center;">Tasks</h2>
+      <div id="taskSection" class="task-box"><div id="taskBox">Loading tasks...</div></div>
+
+      <h2 style="text-align:center;margin-top:14px;">Wheel of Debt 🎡</h2>
+      <div class="task-box" style="text-align:center;">
+        <div id="wheel" aria-hidden="true"><div class="pointer"></div></div>
+        <div id="wheelControls" style="margin-top:8px;">
+          <button id="spinBtn" onclick="spinWheel()">Spin the Wheel</button>
+          <p id="wheelResult"></p>
+          <p id="spinTimer" style="margin-top:6px;color:#fff;"></p>
+        </div>
+      </div>
+
+      <div style="text-align:center;margin-top:12px;"><a href="leaderboard.html">📊 View Leaderboard</a></div>
+    </div>
+
+    <div>
+      <h2 style="text-align:center;">Relapse Diary</h2>
+      <div id="relapseSection" class="relapse-box">
+        <div id="relapseHistory">Loading relapse history...</div>
+        <div id="relapseForm" style="margin-top:12px;"></div>
+        <div style="text-align:center;margin-top:10px;">
+          <button onclick="addRelapseRow()">➕ Add Entry</button>
+          <button onclick="submitRelapse()">Submit Relapse</button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="leaderboard" id="leaderboardFooter"></div>
+
+  <audio id="giggleAudio" src="assets/giggle.mp3" preload="auto"></audio>
+  <audio id="cashAudio" src="assets/cash-register.mp3" preload="auto"></audio>
+  <audio id="whipAudio" src="assets/whip-crack.mp3" preload="auto"></audio>
 
   <script src="account.js"></script>
 </body>

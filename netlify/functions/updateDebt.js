@@ -1,24 +1,18 @@
-import { Client } from "pg";
+const { Pool } = require('pg');
+const pool = new Pool({ connectionString: process.env.NEON_DB_URL, ssl: { rejectUnauthorized: false } });
 
-export async function handler(event){
-  if(event.httpMethod !== 'POST') return { statusCode:405, body:'Method Not Allowed' };
-  const { code, newDebt, newDebtChange } = JSON.parse(event.body || '{}');
-  if(!code) return { statusCode:400, body:'Missing code' };
+exports.handler = async (event) => {
+  try {
+    const { code, newDebtChange } = JSON.parse(event.body);
+    const res = await pool.query('SELECT debt FROM user_accounts WHERE code=$1', [code]);
+    if (res.rows.length === 0) return { statusCode: 404, body: JSON.stringify({ error: "Not found" }) };
 
-  const client = new Client({ connectionString: process.env.NEON_DB_URL, ssl:{ rejectUnauthorized:false } });
-  try{
-    await client.connect();
-    if(typeof newDebtChange !== 'undefined'){
-      await client.query(`UPDATE user_accounts SET debt = debt + $1 WHERE code=$2`, [newDebtChange, code]);
-    } else {
-      await client.query(`UPDATE user_accounts SET debt = $1 WHERE code=$2`, [newDebt, code]);
-    }
-    const r = await client.query(`SELECT debt FROM user_accounts WHERE code=$1`, [code]);
-    await client.end();
-    return { statusCode:200, body: JSON.stringify({ success:true, debt: r.rows[0].debt }) };
-  }catch(err){
-    console.error('DB error updateDebt', err);
-    try{ await client.end(); }catch(e){}
-    return { statusCode:500, body: JSON.stringify({ error: err.message }) };
+    let newDebt = Number(res.rows[0].debt) + Number(newDebtChange);
+    await pool.query('UPDATE user_accounts SET debt=$1 WHERE code=$2', [newDebt, code]);
+
+    return { statusCode: 200, body: JSON.stringify({ debt: newDebt }) };
+  } catch (err) {
+    console.error(err);
+    return { statusCode: 500, body: JSON.stringify({ error: err.message }) };
   }
-}
+};

@@ -7,7 +7,6 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 </head>
 <body>
-
   <div class="watermark">PROPERTY OF SHAI</div>
 
   <header>
@@ -24,8 +23,13 @@
     </section>
 
     <section id="lookup" class="lookup">
+      <h3>Sign in to your account</h3>
+      <p>Type the phrase exactly: <b>"i live to obey shai"</b> to continue</p>
+      <input type="text" id="forcedPhrase" placeholder='type phrase here'>
+      <input type="text" id="lookupEmail" placeholder="Enter your email">
       <input type="text" id="lookupCode" placeholder="Enter your 6-digit code">
-      <button onclick="goToAccount()">Retrieve Account</button>
+      <button onclick="signIn()">Sign In</button>
+      <div id="signinMessage" style="color:#fff;margin-top:10px"></div>
     </section>
 
     <div class="hint">Tip: Finish the survey honestly. The faster you finish the costlier it gets.</div>

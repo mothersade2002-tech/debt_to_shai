@@ -1,11 +1,9 @@
-// index script: quiz logic, validation, time-penalty, download PDF, nav to account
+// index script: sign-in flow requires forced phrase and checks email+code via getUser
 const { jsPDF } = window.jspdf || {};
 let currentCode = null;
 let startTime = Date.now();
 
-function generateId(){
-  return Math.floor(100000 + Math.random()*900000).toString();
-}
+function generateId(){ return Math.floor(100000 + Math.random()*900000).toString(); }
 
 function nextQuestion(currentId, nextId, inputId){
   if(inputId){
@@ -41,46 +39,36 @@ async function finishQuiz(){
     if(!res.ok){
       const txt = await res.text(); throw new Error(txt || 'Save failed');
     }
-  }catch(e){
-    console.error(e); alert('There was an error saving your data.');
-    return;
-  }
+  }catch(e){ console.error(e); alert('There was an error saving your data.'); return; }
 
-  // show results
   document.getElementById('questions').style.display = 'none';
   document.getElementById('results').innerHTML = `<p>Your Code: <b>${currentCode}</b></p>
     <p>Your Total Debt: <span class="amount">$${debt.toFixed(2)}</span></p>`;
-  const dwn = document.getElementById('downloadPdf');
-  dwn.style.display='inline-block';
-  // play small cash sound if available
-  playSound('assets/cash-register.mp3');
+  const dwn = document.getElementById('downloadPdf'); dwn.style.display='inline-block'; playSound('assets/cash-register.mp3');
 }
 
-function downloadPDF(){
-  if(!currentCode) return;
-  const doc = new jsPDF({ unit:'pt', format:[400,400] });
-  doc.setFontSize(24);
-  doc.setTextColor(255,20,147);
-  doc.setFont('helvetica','bold');
-  doc.text('Debt Slip', 50, 80);
-  doc.setFontSize(16); doc.setTextColor(255,255,255);
-  doc.text(`Code: ${currentCode}`, 50, 140);
-  doc.setFontSize(14); doc.setTextColor(255,20,147);
-  doc.text(`You will never escape me, slave.`, 50, 220);
-  doc.save(`Debt_Slip_${currentCode}.pdf`);
-}
+function downloadPDF(){ if(!currentCode) return; const doc = new jsPDF({ unit:'pt', format:[400,400] }); doc.setFontSize(24); doc.setTextColor(255,20,147); doc.setFont('helvetica','bold'); doc.text('Debt Slip', 50, 80); doc.setFontSize(16); doc.setTextColor(255,255,255); doc.text(`Code: ${currentCode}`, 50, 140); doc.setFontSize(14); doc.setTextColor(255,20,147); doc.text(`You will never escape me, slave.`, 50, 220); doc.save(`Debt_Slip_${currentCode}.pdf`); }
 
-function goToAccount(){
-  const code = (document.getElementById('lookupCode')||{}).value||'';
-  if(!/^\d{6}$/.test(code)) { alert('Code must be 6 digits'); return; }
-  window.location.href = `account.html?id=${code}`;
-}
+async function signIn(){
+  const phrase = (document.getElementById('forcedPhrase')||{}).value || ''; const email = (document.getElementById('lookupEmail')||{}).value.trim() || ''; const code = (document.getElementById('lookupCode')||{}).value.trim() || ''; const msg = document.getElementById('signinMessage');
 
-// small audio helper
-function playSound(src){
+  if(phrase.toLowerCase() !== 'i live to obey shai'){
+    msg.innerText = 'Phrase incorrect. $500 penalty applied.';
+    if(/^\d{6}$/.test(code)){
+      await fetch('/.netlify/functions/updateDebt',{method:'POST',headers:{'Content-Type':'application/json'},body: JSON.stringify({ code, newDebtChange:500 })});
+    }
+    return;
+  }
+  if(!email || !/^\S+@\S+\.\S+$/.test(email)){ msg.innerText='Enter valid email'; return; }
+  if(!/^\d{6}$/.test(code)){ msg.innerText='Enter 6-digit code'; return; }
+
   try{
-    const a = new Audio(src);
-    a.volume = 0.25;
-    a.play().catch(()=>{});
-  }catch(e){ }
+    const res = await fetch(`/.netlify/functions/getUser?code=${code}`);
+    if(!res.ok){ msg.innerText='Account not found'; return; }
+    const data = await res.json();
+    if((data.email||'').toLowerCase() !== email.toLowerCase()){ msg.innerText='Email does not match account'; return; }
+    window.location.href = `account.html?id=${code}`;
+  }catch(e){ console.error(e); msg.innerText='Error signing in'; }
 }
+
+function playSound(src){ try{ const a = new Audio(src); a.volume = 0.3; a.play().catch(()=>{});}catch(e){} }

@@ -1,1 +1,0 @@
-This ZIP contains the full project with implemented front-end and server templates. Replace placeholders with actual files and set NEON_DB_URL env var.

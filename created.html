@@ -1,18 +1,1 @@
-<!doctype html><html><head><meta charset="utf-8"><title>You're In Debt</title><link rel="stylesheet" href="style.css"></head><body>
-<main class="centered">
-  <div class="big-text">congrats, you're in debt to me, loser</div>
-  <div style="margin-top:18px;font-size:22px;color:var(--yellow)"><span id="debtAmt">$0.00</span></div>
-  <div style="margin-top:12px;font-size:20px">your submissive id: <b id="subId">------</b></div>
-  <p style="margin-top:18px;max-width:700px">remember this id. you will need it to sign in. keep it safe or you will be punished.</p>
-  <div style="margin-top:24px"><button onclick="continueToAccount()">continue to account</button></div>
-</main>
-<script>
-document.getElementById('debtAmt').innerText = '$' + (sessionStorage.getItem('new_debt')||'0');
-document.getElementById('subId').innerText = sessionStorage.getItem('new_code') || '------';
-function continueToAccount(){
-  const code = sessionStorage.getItem('new_code');
-  if(!code) return window.location.href='index.html';
-  window.location.href = 'account.html?id=' + code;
-}
-</script>
-</body></html>
+<!doctype html><html><head><meta charset='utf-8'><title>You're In Debt</title><link rel='stylesheet' href='style.css'></head><body><main class='centered big-text'>Congrats, you're in debt to me, loser</main></body></html>

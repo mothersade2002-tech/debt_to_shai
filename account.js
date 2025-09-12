@@ -1,3 +1,10 @@
+const whipSound = new Audio('assets/whip.mp3');
+whipSound.load();
+const laughSound = new Audio('assets/laugh.mp3');
+laughSound.load();
+const cashSound = new Audio('assets/cash.mp3');
+cashSound.load();
+
 function fmt(n){return Number(n||0).toFixed(2);}
 let userCode = new URLSearchParams(window.location.search).get('id');
 function showModal(msg){document.getElementById('modalMsg').innerText=msg; document.getElementById('modal').classList.remove('hidden');}
@@ -53,56 +60,117 @@ async function loadAccount(){
   }catch(e){ console.error(e); showModal('error loading account'); }
 }
 
-async function completeTask(id){
-  if(!confirm('mark task complete?')) return;
-  await fetch('/.netlify/functions/submitTask',{method:'POST',headers:{'Content-Type':'application/json'},body: JSON.stringify({ code:userCode, taskId:id, proof_filename:'task_marked', proof_size:0 })});
-  loadAccount();
+async function completeTask(taskId) {
+    try {
+        const resp = await fetch('/.netlify/functions/submitTask', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ code: localStorage.getItem('subCode'), taskId })
+        }).then(r => r.json());
+
+        if (resp.success) {
+            // Play whip sound
+            whipSound.currentTime = 0;
+            whipSound.play();
+
+            alert("Task completed!");
+            loadTasks();
+        }
+    } catch (err) {
+        console.error("Error completing task:", err);
+    }
 }
 
-function drawWheel(sectors){
-  const canvas=document.getElementById('wheel'); const ctx=canvas.getContext('2d');
-  const w=canvas.width, h=canvas.height; const cx=w/2, cy=h/2, r=Math.min(w,h)/2-8;
-  ctx.clearRect(0,0,w,h);
-  const arc = Math.PI*2 / sectors.length;
-  sectors.forEach((s,i)=>{
-    const start = -Math.PI/2 + i*arc;
-    ctx.beginPath(); ctx.moveTo(cx,cy); ctx.arc(cx,cy,r,start,start+arc); ctx.closePath();
-    ctx.fillStyle = i%2===0 ? '#ff8ab8' : '#ff2a80'; ctx.fill();
-    ctx.save(); ctx.translate(cx,cy); ctx.rotate(start+arc/2); ctx.textAlign='right'; ctx.fillStyle='#fff'; ctx.font='14px sans-serif'; ctx.fillText(s.label, r-10, 0); ctx.restore();
-  });
-}
-let wheelSpinning=false;
-async function spinWheel(){
-  if(wheelSpinning) return;
-  const res = await fetch('/.netlify/functions/getUser?code='+encodeURIComponent(userCode));
-  if(!res.ok){ showModal('cannot spin'); return; }
-  const data = await res.json();
-  const last = data.lastspin ? new Date(data.lastspin) : null;
-  if(last && (Date.now() - last.getTime()) < 24*3600*1000){ document.getElementById('wheelMsg').innerText='spin not available'; return; }
-  const sectors = [
-    {label:'add $5', change:5},
-    {label:'add $20', change:20},
-    {label:'double debt', change:'double'},
-    {label:'sub $10', change:-10},
-    {label:'sub $50', change:-50},
-    {label:'clear all', change:'clear'}
-  ];
-  drawWheel(sectors);
-  wheelSpinning=true;
-  const pool=[]; sectors.forEach(s=>{ const w = s.change==='double'?6:(s.change==='clear'?0:1); for(let i=0;i<w;i++) pool.push(s); });
-  const pick = pool[Math.floor(Math.random()*pool.length)];
-  setTimeout(async ()=>{
-    document.getElementById('wheelMsg').innerText='result: '+pick.label;
-    if(pick.change==='double'){
-      const current = Number((await (await fetch('/.netlify/functions/getUser?code='+encodeURIComponent(userCode))).then(r=>r.json())).debt||0);
-      await fetch('/.netlify/functions/updateDebt',{method:'POST',headers:{'Content-Type':'application/json'},body: JSON.stringify({ code:userCode, newDebtChange: current })});
-    } else if(pick.change==='clear'){ } else {
-      await fetch('/.netlify/functions/updateDebt',{method:'POST',headers:{'Content-Type':'application/json'},body: JSON.stringify({ code:userCode, newDebtChange: pick.change })});
+async function spinWheel() {
+    const canvas = document.getElementById("wheelCanvas");
+    const ctx = canvas.getContext("2d");
+
+    const slices = [
+        { label: "-$10", value: -10 },
+        { label: "-$20", value: -20 },
+        { label: "Double Debt", value: "double" },
+        { label: "-$50", value: -50 },
+        { label: "-$100", value: -100 },
+        { label: "+$200", value: 200 }
+    ];
+
+    const sliceAngle = (2 * Math.PI) / slices.length;
+
+    let spinAngle = Math.random() * 2 * Math.PI;
+    let spinVelocity = 0.3 + Math.random() * 0.2;
+
+    function drawWheel(angle) {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        slices.forEach((slice, i) => {
+            ctx.beginPath();
+            ctx.moveTo(200, 200);
+            ctx.arc(200, 200, 200, angle + i * sliceAngle, angle + (i + 1) * sliceAngle);
+            ctx.fillStyle = i % 2 === 0 ? "#ff9999" : "#ff6666";
+            ctx.fill();
+
+            ctx.save();
+            ctx.translate(200, 200);
+            ctx.rotate(angle + (i + 0.5) * sliceAngle);
+            ctx.textAlign = "right";
+            ctx.fillStyle = "black";
+            ctx.font = "16px Arial";
+            ctx.fillText(slice.label, 180, 10);
+            ctx.restore();
+        });
+
+        // pointer triangle
+        ctx.fillStyle = "black";
+        ctx.beginPath();
+        ctx.moveTo(400, 200);
+        ctx.lineTo(420, 190);
+        ctx.lineTo(420, 210);
+        ctx.closePath();
+        ctx.fill();
     }
-    await fetch('/.netlify/functions/setLastSpin',{method:'POST',headers:{'Content-Type':'application/json'},body: JSON.stringify({ code:userCode })});
-    wheelSpinning=false; loadAccount();
-  }, 1600);
+
+    function animateSpin() {
+        spinAngle += spinVelocity;
+        spinVelocity *= 0.97;
+
+        drawWheel(spinAngle);
+
+        if (spinVelocity > 0.01) {
+            requestAnimationFrame(animateSpin);
+        } else {
+            const winningIndex = Math.floor(((2 * Math.PI - spinAngle % (2 * Math.PI)) / sliceAngle) % slices.length);
+            const winningSlice = slices[winningIndex];
+
+            let change = 0;
+            if (winningSlice.value === "double") {
+                change = document.getElementById("totalDebt").innerText.replace(/\D/g, "") * 1;
+            } else {
+                change = winningSlice.value;
+            }
+
+            // Update debt on server
+            fetch('/.netlify/functions/updateDebt', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ code: localStorage.getItem('subCode'), newDebtChange: change })
+            })
+            .then(r => r.json())
+            .then(resp => {
+                if (resp.debt !== undefined) {
+                    document.getElementById("totalDebt").innerText = `$${resp.debt}`;
+
+                    // Play cash sound
+                    cashSound.currentTime = 0;
+                    cashSound.play();
+                }
+            })
+            .catch(err => console.error("Error updating debt:", err));
+        }
+    }
+
+    animateSpin();
 }
+
 
 // relapse
 function addRelapseRow(){
@@ -112,5 +180,27 @@ function addRelapseRow(){
 }
 function updateSubmitState(){ const rows = document.querySelectorAll('.relapse-row'); let ok=false; rows.forEach(r=>{ const note=r.querySelector('.r-note').value.trim(); const amt=parseFloat(r.querySelector('.r-amt').value)||0; const plat=r.querySelector('.r-platform').value; if(note && amt>0 && plat) ok=true; }); document.getElementById('submitRelapseBtn').disabled = !ok; }
 async function submitRelapse(){ const rows = document.querySelectorAll('.relapse-row'); const entries=[]; rows.forEach(r=>{ const note=r.querySelector('.r-note').value.trim(); const amt=parseFloat(r.querySelector('.r-amt').value)||0; const plat=r.querySelector('.r-platform').value; if(note && amt>0 && plat) entries.push({note,amount:amt,platform:plat}); }); if(entries.length===0) return; showModal('Submitting relapse...'); await fetch('/.netlify/functions/addRelapse',{method:'POST',headers:{'Content-Type':'application/json'},body: JSON.stringify({ code:userCode, entries })}); closeModal(); loadAccount(); }
+
+// Example: Submit Relapse
+async function submitRelapse(note, amount, platform) {
+    try {
+        const resp = await fetch('/.netlify/functions/addRelapse', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ code: localStorage.getItem('subCode'), entries: [{ note, amount, platform }] })
+        }).then(r => r.json());
+
+        if (resp.success) {
+            // Play laugh sound
+            laughSound.currentTime = 0;
+            laughSound.play();
+
+            alert("Relapse submitted!");
+            loadRelapses();
+        }
+    } catch (err) {
+        console.error("Error submitting relapse:", err);
+    }
+}
 
 window.addEventListener('load', loadAccount);

@@ -1,9 +1,3 @@
-const whipSound = new Audio('assets/whip.mp3');
-whipSound.load();
-const laughSound = new Audio('assets/laugh.mp3');
-laughSound.load();
-const cashSound = new Audio('assets/cash.mp3');
-cashSound.load();
 
 function fmt(n){return Number(n||0).toFixed(2);}
 let userCode = new URLSearchParams(window.location.search).get('id');
@@ -69,9 +63,7 @@ async function completeTask(taskId) {
         }).then(r => r.json());
 
         if (resp.success) {
-            // Play whip sound
-            whipSound.currentTime = 0;
-            whipSound.play();
+
 
             alert("Task completed!");
             loadTasks();
@@ -159,9 +151,7 @@ async function spinWheel() {
                 if (resp.debt !== undefined) {
                     document.getElementById("totalDebt").innerText = `$${resp.debt}`;
 
-                    // Play cash sound
-                    cashSound.currentTime = 0;
-                    cashSound.play();
+
                 }
             })
             .catch(err => console.error("Error updating debt:", err));
@@ -191,9 +181,7 @@ async function submitRelapse(note, amount, platform) {
         }).then(r => r.json());
 
         if (resp.success) {
-            // Play laugh sound
-            laughSound.currentTime = 0;
-            laughSound.play();
+
 
             alert("Relapse submitted!");
             loadRelapses();

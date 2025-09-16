@@ -23,7 +23,18 @@ input,textarea,select{width:100%;padding:12px;border-radius:8px;border:1px solid
 #debtVal{color:var(--yellow);font-weight:900;font-size:28px}
 
 /* progress bar */
-.debt-bar{height:36px;max-width:100%;margin:12px auto;border-radius:12px;overflow:hidden;border:2px solid rgba(0,0,0,0.12);background:#eee;color:#000}
+.debt-bar {
+  height:36px;
+  width:100%;              /* force full stretch */
+  margin:12px 0;           /* remove auto-centering */
+  border-radius:12px;
+  overflow:hidden;
+  border:2px solid rgba(0,0,0,0.12);
+  background:#eee;
+  color:#000;
+}
+
+
 .debt-fill{height:100%;width:0%;background:linear-gradient(90deg,#2ecc71,#27ae60);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;letter-spacing:2px;transition:width .8s}
 
 /* layout */

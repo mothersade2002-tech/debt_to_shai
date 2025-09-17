@@ -14,6 +14,7 @@ async function loadAccount(){
     document.getElementById('rank').innerText='Rank: --';
     document.getElementById('title').innerText='Title: '+(data.title||'worm');
     document.getElementById('debtVal').innerText='$'+fmt(data.debt||0);
+    document.getElementById('debtBarText').innerText = `Total Sent: $${amount}`;
 
     const tRes=await fetch('/.netlify/functions/getTasks?code='+encodeURIComponent(userCode));
     const container=document.getElementById('tasksList');
